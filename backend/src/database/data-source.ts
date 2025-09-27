@@ -1,5 +1,5 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config();
 
 const MAX_RETRY_ATTEMPTS = 10;
@@ -13,11 +13,12 @@ export const dataSourceOptions: DataSourceOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  synchronize: false,
+  synchronize: true,
   logging: false,
 
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/database/migrations/*.js'],
+ 
+  entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+  migrations: [`${__dirname}/migrations/*{.ts,.js}`],
   subscribers: [],
 };
 
@@ -33,9 +34,9 @@ export async function initializeDataSource() {
     try {
       console.log(`Tentando estabelecer conexão com o banco de dados: ( tentativa ${attempts + 1}/10 )`);
       await AppDataSource.initialize();
-      console.log('Conexão com o banco de dados estabelecida com sucesso');
+      console.log("Conexão com o banco de dados estabelecida com sucesso");
       return AppDataSource;
-    } catch (error) {
+    } catch (error: any) {
       attempts++;
       console.error(`Falha na conexão:`, error.message);
 
@@ -43,9 +44,7 @@ export async function initializeDataSource() {
         throw new Error(`Não foi possível conectar ao banco de dados após ${MAX_RETRY_ATTEMPTS} tentativas`);
       }
 
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
     }
   }
 }
-
-export default AppDataSource;
