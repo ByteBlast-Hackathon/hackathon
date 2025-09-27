@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AiModule } from './ai/ai.module';
 import { AuthorizationModule } from './authorization/authorization.module';
+import { AppointmentModule } from './appointment/appointment.module';
 
 
 @Module({
@@ -19,6 +20,7 @@ import { AuthorizationModule } from './authorization/authorization.module';
     }),
     UserModule,
     AuthModule,
+    AppointmentModule,
     AiModule,
     AuthorizationModule
   ],

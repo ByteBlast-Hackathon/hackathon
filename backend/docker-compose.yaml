@@ -23,7 +23,8 @@ services:
     build: .
     container_name: nestjs-app
     restart: always
-    command: sh -c "npm install && npm run start:dev"
+    # Executa as migrations antes de subir a aplicação
+    command: sh -c "npm install && npm run migration:run && npm run start:dev"
     ports:
       - "${APP_PORT}:${APP_PORT}"
     env_file:
@@ -43,5 +44,3 @@ networks:
 
 volumes:
   postgres_data:
-
-
