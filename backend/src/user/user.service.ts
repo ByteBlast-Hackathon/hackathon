@@ -92,5 +92,10 @@ export class UserService {
 
     return { message: `Usuário com o ID '${id}' foi deletado com sucesso.` };
   }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
 }
 

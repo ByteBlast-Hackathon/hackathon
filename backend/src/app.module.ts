@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppDataSource } from './database/data-source';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,7 +14,9 @@ import { UserModule } from './user/user.module';
       retryAttempts: 5,
       retryDelay: 5000
     }),
-    UserModule
+    UserModule,
+    AuthModule,
+    // AiModule,
   ],
   controllers: [],
   providers: [],
