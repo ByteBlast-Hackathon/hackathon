@@ -28,6 +28,7 @@ async function bootstrap() {
       .setVersion('1.0')
       .addTag('Users', 'Operações relacionadas a usuários')
       .addTag('AI', 'Operações de IA')
+      .addBearerAuth()
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

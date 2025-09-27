@@ -5,6 +5,7 @@ import { AppDataSource } from './database/data-source';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AiModule } from './ai/ai.module';
+import { AuthorizationModule } from './authorization/authorization.module';
 
 
 @Module({
@@ -18,7 +19,8 @@ import { AiModule } from './ai/ai.module';
     }),
     UserModule,
     AuthModule,
-    AiModule
+    AiModule,
+    AuthorizationModule
   ],
   controllers: [],
   providers: [],
