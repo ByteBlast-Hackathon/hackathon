@@ -14,11 +14,11 @@ export const dataSourceOptions: DataSourceOptions = {
   database: process.env.DB_DATABASE,
 
   synchronize: true,
-  logging: false,
+  logging: true,
 
 
-  entities: ["src/**/*.entity{.ts,.js}"],
-  migrations: [`${__dirname}/migrations/*{.ts,.js}`],
+  entities: [__dirname + '/../**/*.entity.{js,ts}'],
+  migrations: [__dirname + '/migrations/*.{js,ts}'],
   subscribers: [],
 };
 
@@ -38,7 +38,7 @@ export async function initializeDataSource() {
       return AppDataSource;
     } catch (error: any) {
       attempts++;
-      console.error(`Falha na conexão:`, error.message);
+      console.error(`❌ Falha na conexão:`, error);
 
       if (attempts >= MAX_RETRY_ATTEMPTS) {
         throw new Error(`Não foi possível conectar ao banco de dados após ${MAX_RETRY_ATTEMPTS} tentativas`);
