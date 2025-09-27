@@ -16,8 +16,8 @@ export const dataSourceOptions: DataSourceOptions = {
   synchronize: true,
   logging: false,
 
- 
-  entities: [`${__dirname}/**/*.entity{.ts,.js}`],
+
+  entities: ["src/**/*.entity{.ts,.js}"],
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],
   subscribers: [],
 };
