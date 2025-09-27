@@ -1,4 +1,6 @@
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
+
+RUN apt-get update && apt-get install -y ghostscript graphicsmagick
 
 WORKDIR /usr/src/app
 
@@ -10,7 +12,9 @@ COPY . .
 
 RUN npm run build
 
-FROM node:20-alpine
+FROM node:20
+
+RUN apt-get update && apt-get install -y ghostscript graphicsmagick
 
 WORKDIR /usr/src/app
 
@@ -23,4 +27,3 @@ COPY --from=builder /usr/src/app/dist ./dist
 EXPOSE 3000
 
 CMD ["node", "dist/main"]
-
