@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres-db:
     image: postgres:15
@@ -15,16 +13,24 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - nestjs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   nestjs-app:
     build: .
     container_name: nestjs-app
     restart: always
-    command: npm run start:prod
+    command: npm run start:dev
     ports:
       - "${APP_PORT}:${APP_PORT}"
+    env_file:
+      - ./.env
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
