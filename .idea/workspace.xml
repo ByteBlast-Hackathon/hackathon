@@ -5,26 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e10a3858-1706-49ff-99f3-21d1c014a9f3" name="Changes" comment="feat: criando a pagina de registrar e logar">
-      <change afterPath="$PROJECT_DIR$/frontend/components.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/public/logo_unimed_branco 1.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/public/logo_unimed_verde.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/public/logo_unimed_verde.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/public/register_image.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/public/unimed_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/ui/button.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/ui/form.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/ui/input.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/ui/label.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/frontend/src/lib/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/page.tsx" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/ui/icon-button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/globals.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ui/button.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,6 +69,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "to.speed.mode.migration.done": "true",
     "ts.external.directory.path": "/Users/arthurpvn/Desktop/Desenvolvedor/hackathon/frontend/node_modules/typescript/lib"
   }
@@ -107,7 +95,7 @@
       <option name="presentableId" value="Default" />
       <updated>1758993738203</updated>
       <workItem from="1758993739270" duration="13685000" />
-      <workItem from="1759007764945" duration="1100000" />
+      <workItem from="1759007764945" duration="5989000" />
     </task>
     <task id="LOCAL-00001" summary="feat: criando a pagina de registrar e logar">
       <option name="closed" value="true" />
@@ -117,7 +105,15 @@
       <option name="project" value="LOCAL" />
       <updated>1759007216919</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat: criando a pagina de registrar e logar">
+      <option name="closed" value="true" />
+      <created>1759009192766</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1759009192766</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
