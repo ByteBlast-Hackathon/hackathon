@@ -80,6 +80,27 @@ interface BookingResponse {
     data?: Record<string, unknown>;
 }
 
+ interface MyAppointmentsResponse {
+  success: boolean;
+  appointments: Appointment[];
+  total: number;
+}
+
+export interface Appointment {
+  id: number;
+  patientName: string;
+  birthDate: string;
+  specialty: string;
+  reason: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  city?: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  protocol: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 // --- FUNÇÕES DE API ---
 
@@ -106,6 +127,24 @@ export const askGenerativeAI = async ({ question }: ChatRequestProps): Promise<C
         }
         throw error;
     }
+};
+
+export const getMyAppointments = async (): Promise<MyAppointmentsResponse> => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.get(`${API_BASE_URL}/appointments/my-appointments`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Erro ao buscar consultas:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || "Erro ao buscar consultas");
+    } else {
+      console.error("Erro inesperado ao buscar consultas:", error);
+      throw new Error("Erro inesperado ao buscar consultas");
+    }
+  }
 };
 
 export const authorizeExamRequest = async ({ file }: AuthorizationRequestProps): Promise<AuthorizationResponse> => {
@@ -146,5 +185,13 @@ export const bookAppointmentRequest = async (bookingData: BookingRequestProps): 
         }
         throw error;
     }
+
+  
+
+
+
+
+
+ 
 };
 
