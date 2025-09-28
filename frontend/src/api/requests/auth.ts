@@ -63,7 +63,13 @@ export const loginRequest = async ({ email, pass }: LoginProps) => {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         // Após o login, busca e retorna os dados do utilizador
-        return await getUserData();
+        const userData = await getUserData();
+        // Salva nome, id e email no localStorage
+        if (userData) {
+            localStorage.setItem("name", userData.name || "");
+            localStorage.setItem("id", userData.id || "");
+        }
+        return userData;
 
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -170,3 +176,15 @@ export const authorizeRequest = async (file: File) => {
     }
 };
 
+export const logout = () => {
+    try {
+        Cookies.remove("auth_token");
+        delete axios.defaults.headers.common['Authorization'];
+        localStorage.removeItem("name");
+        localStorage.removeItem("id");
+        console.log("Logout bem-sucedido.");
+        window.location.href = "/auth";
+    } catch (error) {
+        console.error("Erro ao fazer logout:", error);
+    }
+}

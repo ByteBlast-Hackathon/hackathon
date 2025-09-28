@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ChartNoAxesColumnIncreasingIcon, LogOutIcon, UserIcon } from "lucide-react";
 import MenuItem from "@/components/MenuItem";
 import { useCurrentPage } from "@/lib/slug";
+import {Button} from "@/components/ui/button";
+import {logout} from "@/api/requests/auth";
 
 const MenuBar = () => {
     const [minimized, setMinimized] = useState(false);
@@ -43,7 +45,7 @@ const MenuBar = () => {
         { name: "Consultas", path: "/consultas" },
     ];
 
-    if (path !== "/auth")
+    if (path !== "/auth" && path !== "/inicio")
         return (
             <div className="lg:items-center lg:h-screen flex items-center">
                 <div
@@ -110,11 +112,6 @@ const MenuBar = () => {
                             />
                         ))}
 
-                        {/* Perfil no mobile */}
-                        <button className="flex flex-col items-center gap-1 font-bold rounded-full p-5 transition">
-                            <UserIcon />
-                            {userName && <span className="text-xs">{getInitials(userName)}</span>}
-                        </button>
                     </nav>
 
                     {/* Rodapé Desktop */}
@@ -126,7 +123,9 @@ const MenuBar = () => {
                             {!minimized && <p>{userName}</p>}
                         </div>
                         {!minimized && (
-                            <LogOutIcon className="text-destructive size-6 cursor-pointer" />
+                            <Button onClick={() => logout()} variant={"ghost"}>
+                                <LogOutIcon className="text-destructive size-6 cursor-pointer" />
+                            </Button>
                         )}
                     </div>
                 </div>
