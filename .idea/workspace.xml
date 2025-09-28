@@ -4,16 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e10a3858-1706-49ff-99f3-21d1c014a9f3" name="Changes" comment="feat: enhance authentication flow with loading states and error handling in login and registration forms">
+    <list default="true" id="e10a3858-1706-49ff-99f3-21d1c014a9f3" name="Changes" comment="feat: update layout and menu components for improved responsiveness and navigation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/consultas/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(features)/consultas/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/exames/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(features)/exames/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/talk/page.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/(home)/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(home)/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/MenuItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/MenuItem.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/shared/MenuBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/shared/MenuBar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/lib/useAuthGuard.ts" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +104,7 @@
       <workItem from="1758993739270" duration="13685000" />
       <workItem from="1759007764945" duration="22641000" />
       <workItem from="1759034771336" duration="1225000" />
-      <workItem from="1759037504730" duration="8075000" />
+      <workItem from="1759037504730" duration="10408000" />
     </task>
     <task id="LOCAL-00001" summary="feat: criando a pagina de registrar e logar">
       <option name="closed" value="true" />
@@ -157,7 +154,15 @@
       <option name="project" value="LOCAL" />
       <updated>1759040929585</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="feat: update layout and menu components for improved responsiveness and navigation">
+      <option name="closed" value="true" />
+      <created>1759045907325</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1759045907325</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -180,6 +185,7 @@
     <MESSAGE value="feat: implementando validacao no forms de registrar + criando menu lateral" />
     <MESSAGE value="feat: add menu items and routing for Dashboard, Exams, Consultas, and Talk pages" />
     <MESSAGE value="feat: enhance authentication flow with loading states and error handling in login and registration forms" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: enhance authentication flow with loading states and error handling in login and registration forms" />
+    <MESSAGE value="feat: update layout and menu components for improved responsiveness and navigation" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: update layout and menu components for improved responsiveness and navigation" />
   </component>
 </project>

@@ -99,7 +99,7 @@ const ExamsPage = () => {
 
     // --- RENDERIZAÇÃO ---
     return (
-        <div className="flex flex-col lg:w-[65dvw] items-center lg:justify-center min-h-screen bg-gray-50 p-4">
+        <div className="flex flex-col lg:w-[65dvw] items-center lg:justify-center bg-gray-50 p-4">
             <div className="w-full h-[80dvh] lg:h-[95dvh] flex flex-col bg-white rounded-lg border overflow-hidden">
                 {/* HEADER */}
                 <div className="bg-green-600 text-white flex items-center justify-center px-4 py-3 flex-shrink-0">

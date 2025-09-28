@@ -118,10 +118,10 @@ const ConsultasPage = () => {
 
     // --- RENDERIZAÇÃO ---
     return (
-        <div className="flex flex-col lg:w-[65dvw] items-center lg:justify-center min-h-screen bg-gray-50 p-4">
-            <div className="w-full h-[80dvh] lg:h-[95dvh] flex flex-col bg-white rounded-lg border overflow-hidden">
+        <div className="flex flex-col lg:w-full items-center lg:justify-center bg-gray-50 lg:mx-20 p-4">
+            <div className="w-full h-[80dvh] lg:h-full flex flex-col bg-white rounded-lg border overflow-hidden">
                 {/* HEADER */}
-                <div className="bg-green-600 text-white flex items-center justify-center px-4 py-3 flex-shrink-0">
+                <div className="bg-primary text-white flex items-center justify-center px-4 py-3 flex-shrink-0">
                     <h1 className="text-xl font-bold">Agendamento de Consulta</h1>
                 </div>
 
@@ -130,7 +130,7 @@ const ConsultasPage = () => {
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`flex items-start gap-3 ${msg.from === 'user' ? 'justify-end' : ''}`}>
                             {msg.from === 'bot' && (
-                                <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-bold flex-shrink-0 text-lg">
+                                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold flex-shrink-0 text-lg">
                                     <Bot size={24} />
                                 </div>
                             )}
@@ -180,7 +180,7 @@ const ConsultasPage = () => {
                                 disabled={isLoading || conversationStep === 'done'}
                             />
                             <button
-                                className="bg-green-600 text-white p-3 rounded-full hover:bg-green-700 disabled:bg-gray-400 transition-colors flex-shrink-0"
+                                className="bg-primary text-white p-3 rounded-full hover:bg-green-700 disabled:bg-gray-400 transition-colors flex-shrink-0"
                                 onClick={handleSendMessage}
                                 disabled={isLoading || !input.trim() || conversationStep === 'done'}
                             >
