@@ -3,6 +3,7 @@ import {Roboto} from "next/font/google";
 import "./globals.css";
 import React from "react";
 import MenuBar from "@/components/shared/MenuBar";
+import HelpButton from "@/components/shared/HelpButton";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -23,10 +24,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.variable} antialiased flex gap-6`}
+        className={`${roboto.variable}  antialiased flex gap-6`}
       >
       <MenuBar />
         {children}
+
+      <div className={"absolute bottom-5 right-5"}>
+          <HelpButton />
+      </div>
       </body>
     </html>
   );
