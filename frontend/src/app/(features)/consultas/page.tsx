@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { SendHorizontal, Bot } from "lucide-react";
 import { bookAppointmentRequest, BookingRequestProps } from "@/api/requests/chat-bot";
 import axios from "axios";
-import useAuthGuard from "@/lib/useAuthGuard";
 
 // --- Definições de Tipo ---
 type ConversationStep = 'start' | 'name' | 'birthDate' | 'specialty' | 'reason' | 'confirm' | 'done';
@@ -15,8 +14,6 @@ interface Message {
 }
 
 const ConsultasPage = () => {
-    useAuthGuard();
-
     // --- ESTADO DO COMPONENTE ---
     const [messages, setMessages] = useState<Message[]>([
         { from: 'bot', text: 'Olá! Vamos iniciar o seu agendamento. Por favor, qual é o nome completo do paciente?' }
@@ -121,8 +118,8 @@ const ConsultasPage = () => {
 
     // --- RENDERIZAÇÃO ---
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-            <div className="w-full max-w-2xl h-[80vh] flex flex-col bg-white rounded-xl shadow-2xl border overflow-hidden">
+        <div className="flex flex-col lg:w-[65dvw] items-center lg:justify-center min-h-screen bg-gray-50 p-4">
+            <div className="w-full h-[80dvh] lg:h-[95dvh] flex flex-col bg-white rounded-lg border overflow-hidden">
                 {/* HEADER */}
                 <div className="bg-green-600 text-white flex items-center justify-center px-4 py-3 flex-shrink-0">
                     <h1 className="text-xl font-bold">Agendamento de Consulta</h1>
@@ -162,7 +159,7 @@ const ConsultasPage = () => {
                 </div>
 
                 {/* INPUT E BOTÃO DE CONFIRMAÇÃO */}
-                <div className="p-4 border-t bg-white flex-shrink-0">
+                <div className="p-4 border-t bg-white text-black flex-shrink-0">
                     {conversationStep === 'confirm' ? (
                         <button
                             onClick={handleConfirmBooking}

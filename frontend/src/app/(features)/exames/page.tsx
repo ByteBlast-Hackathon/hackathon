@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { UploadCloud, FileCheck, AlertTriangle, Clock } from "lucide-react";
 // Importa a função de API necessária
 import { authorizeExamRequest } from "@/api/requests/chat-bot";
-import useAuthGuard from "@/lib/useAuthGuard";
 
 // --- Definições de Tipo ---
 interface Message {
@@ -18,7 +17,6 @@ function isApiError(error: unknown): error is { response?: { data?: { message?: 
 }
 
 const ExamsPage = () => {
-    useAuthGuard();
 
     // --- ESTADO DO COMPONENTE ---
     const [messages, setMessages] = useState<Message[]>([
@@ -101,8 +99,8 @@ const ExamsPage = () => {
 
     // --- RENDERIZAÇÃO ---
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-            <div className="w-full max-w-2xl h-[70vh] flex flex-col bg-white rounded-xl shadow-2xl border overflow-hidden">
+        <div className="flex flex-col lg:w-[65dvw] items-center lg:justify-center min-h-screen bg-gray-50 p-4">
+            <div className="w-full h-[80dvh] lg:h-[95dvh] flex flex-col bg-white rounded-lg border overflow-hidden">
                 {/* HEADER */}
                 <div className="bg-green-600 text-white flex items-center justify-center px-4 py-3 flex-shrink-0">
                     <h1 className="text-xl font-bold">Sistema de Autorização de Exames</h1>
@@ -144,7 +142,7 @@ const ExamsPage = () => {
                 </div>
 
                 {/* INPUT */}
-                <div className="p-4 border-t bg-white flex-shrink-0">
+                <div className="p-4 border-t bg-white text-black flex-shrink-0">
                     <input
                         type="file"
                         ref={fileInputRef}

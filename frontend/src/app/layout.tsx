@@ -24,13 +24,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.variable}  antialiased flex gap-6`}
+        className={`${roboto.variable} antialiased flex max-md:flex-col-reverse lg:gap-6`}
       >
       <MenuBar />
       <Toaster />
         {children}
 
-      <div className={"absolute bottom-5 right-5"}>
+      <div className={"hidden lg:block absolute bottom-5 right-5"}>
           <HelpButton />
       </div>
       </body>

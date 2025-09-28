@@ -17,18 +17,18 @@ const MenuBar = () => {
     console.log(path);
 
     const menuItems = [
-        { name: "Dashboard", path: "/" },
+        { name: "Fale Conosco", path: "/" },
         { name: "Exames", path: "/exames" },
         { name: "Consultas", path: "/consultas" },
-        { name: "Fale Conosco", path: "/talk" },
     ];
 
     if(path != "/auth")
     return (
-        <div className={"hidden lg:flex items-center h-screen"}>
-            <div className={`flex justify-between bg-primary ${minimized ? "w-26" : "w-95"} h-[95dvh] rounded-lg shadow-lg mx-6 flex-col transition-all duration-200`}>
+        <div className={"lg:items-center lg:h-screen w-full"}>
+            <div className={`flex justify-between w-full bg-primary ${minimized ? "lg:w-26" : "lg:w-95"} lg:h-[95dvh] rounded-lg shadow-lg lg:mx-6 flex-col transition-all duration-200`}
+                style={{ minHeight: '0', position: 'relative' }}>
                 <div className={"py-6"}>
-                    <div className={"flex justify-between items-center mx-6 mb-16"}>
+                    <div className={"hidden lg:flex justify-between items-center mx-6 lg:mb-16"}>
                         <Image
                             src={"/logo_unimed_branco.png"}
                             alt={"unimed logo"}
@@ -50,7 +50,7 @@ const MenuBar = () => {
                         </div>
                     </div>
 
-                    <nav className={`flex flex-col ${minimized ? "items-center" : ""} mx-4 gap-4`}>
+                    <nav className={`hidden lg:flex flex-col ${minimized ? "items-center" : ""} mx-4 gap-4`}>
                         {menuItems.map(item => (
                             <MenuItem
                                 key={item.name}
@@ -62,16 +62,29 @@ const MenuBar = () => {
                     </nav>
                 </div>
 
-                <div className={"flex justify-between items-center px-6 py-4 bg-[var(--primary-dark_green)] w-full"}>
+                {/* Menu Mobile Fixo Inferior */}
+                <nav className="fixed bottom-0 left-0 right-0 z-50 flex lg:hidden bg-white border-t border-gray-200 shadow-2xl justify-center items-center gap-2 py-2"
+                    style={{boxShadow: '0 -2px 16px 0 rgba(0,0,0,0.08)'}}>
+                    {menuItems.map(item => (
+                        <MenuItem
+                            key={item.name}
+                            name={item.name as any}
+                            activated={path === item.path}
+                            minimized={false}
+                        />
+                    ))}
+                </nav>
+
+                {/* Rodapé Desktop */}
+                <div className={"hidden lg:flex justify-between items-center px-6 rounded-b-lg py-4 bg-[var(--primary-dark_green)] w-full"}>
                     <div className={`flex gap-4 items-center ${minimized ? "justify-center w-full" : ""}`}>
                         <div className="flex items-center gap-4 rounded-full bg-white text-black w-fit p-4 mt-auto">
                             NU
                         </div>
                         {!minimized && <p> Nome do Usuáio</p>}
                     </div>
-
                     {minimized ? (
-                            <ChartNoAxesColumnIncreasingIcon className={"size-6 rotate-90"} />
+                        <ChartNoAxesColumnIncreasingIcon className={"size-6 rotate-90"} />
                     ) : (
                         <LogOutIcon className={"text-destructive size-6"} />
                     )}

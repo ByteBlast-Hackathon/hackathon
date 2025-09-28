@@ -5,17 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e10a3858-1706-49ff-99f3-21d1c014a9f3" name="Changes" comment="feat: enhance authentication flow with loading states and error handling in login and registration forms">
-      <change afterPath="$PROJECT_DIR$/frontend/src/lib/useAuthGuard.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/api/requests/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/api/requests/auth.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/consultas/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(features)/consultas/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/exames/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(features)/exames/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/talk/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(features)/talk/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/(features)/talk/page.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/(home)/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/(home)/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/ui/sonner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ui/sonner.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/MenuItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/MenuItem.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/shared/MenuBar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/shared/MenuBar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/lib/useAuthGuard.ts" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,8 +23,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="TypeScript File" />
         <option value="TypeScript JSX File" />
+        <option value="TypeScript File" />
       </list>
     </option>
   </component>
@@ -109,7 +107,7 @@
       <workItem from="1758993739270" duration="13685000" />
       <workItem from="1759007764945" duration="22641000" />
       <workItem from="1759034771336" duration="1225000" />
-      <workItem from="1759037504730" duration="3387000" />
+      <workItem from="1759037504730" duration="8075000" />
     </task>
     <task id="LOCAL-00001" summary="feat: criando a pagina de registrar e logar">
       <option name="closed" value="true" />
@@ -151,11 +149,30 @@
       <option name="project" value="LOCAL" />
       <updated>1759038219432</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="feat: enhance authentication flow with loading states and error handling in login and registration forms">
+      <option name="closed" value="true" />
+      <created>1759040929585</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1759040929585</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: criando a pagina de registrar e logar" />

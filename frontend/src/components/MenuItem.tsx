@@ -6,14 +6,13 @@ import Link from "next/link";
 import React from "react";
 
 interface MenuItemProps {
-    name: "Dashboard" | "Exames" | "Consultas" | "Fale Conosco";
+    name: "Exames" | "Consultas" | "Fale Conosco";
     activated: boolean;
     minimized?: boolean;
 }
 
 const MenuItem = ({ name, activated, minimized = false }: MenuItemProps) => {
     const icons: Record<MenuItemProps["name"], React.ReactNode> = {
-        Dashboard: <LayoutDashboardIcon className="size-7" />,
         Exames: <ActivitySquareIcon className="size-7" />,
         Consultas: <ClipboardIcon className="size-7" />,
         "Fale Conosco": <HelpCircleIcon className="size-7" />,
@@ -21,10 +20,9 @@ const MenuItem = ({ name, activated, minimized = false }: MenuItemProps) => {
 
     // Map menu name to route
     const routeMap: Record<MenuItemProps["name"], string> = {
-        Dashboard: "/",
+        "Fale Conosco": "/",
         Exames: "/exames",
         Consultas: "/consultas",
-        "Fale Conosco": "/talk",
     };
 
     return (
@@ -37,7 +35,10 @@ const MenuItem = ({ name, activated, minimized = false }: MenuItemProps) => {
                 size="menu"
             >
                 {icons[name]}
+                <p className={"hidden lg:block"}>
+
                 {!minimized && name}
+                </p>
             </Button>
         </Link>
     );
