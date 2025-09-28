@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";
-import { SendHorizontal, Bot, Calendar, Clock, User, Stethoscope, FileText, Trash2, RefreshCw } from "lucide-react";
+import { SendHorizontal, Bot, Calendar, Clock, User, Stethoscope, FileText, Trash2, RefreshCw, MapPin } from "lucide-react";
 import { bookAppointmentRequest, BookingRequestProps, getMyAppointments, Appointment } from "@/api/requests/chat-bot";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,10 +47,12 @@ const ConsultasPage = () => {
         setIsLoadingAppointments(true);
         try {
             const response = await getMyAppointments();
-            setAppointments(response.appointments || []);
+            // Agora usamos response.data que é o array de appointments
+            setAppointments(response.data || []);
         } catch (error) {
             console.error("Erro ao carregar consultas:", error);
-            // Você pode adicionar um toast de erro aqui
+            // Mensagem de erro para o usuário
+            addMessage({ from: 'bot', text: 'Erro ao carregar suas consultas. Tente novamente.' });
         } finally {
             setIsLoadingAppointments(false);
         }
@@ -63,7 +65,10 @@ const ConsultasPage = () => {
     const handleApiError = (error: unknown) => {
         const errorMessage = axios.isAxiosError(error)
             ? error.response?.data?.message || 'Ocorreu um erro ao comunicar com o servidor.'
+            : error instanceof Error 
+            ? error.message
             : 'Desculpe, ocorreu um erro inesperado. Tente novamente mais tarde.';
+        
         addMessage({ from: 'bot', text: errorMessage });
     };
 
@@ -77,11 +82,16 @@ const ConsultasPage = () => {
 
         switch (currentStep) {
             case 'name':
-                nextQuestion = `Obrigado, ${value}. Agora, qual é a data de nascimento? (YYYY-MM-DD)`;
+                nextQuestion = `Obrigado, ${value}. Agora, qual é a data de nascimento? (Formato: YYYY-MM-DD)`;
                 nextStepName = 'birthDate';
                 break;
             case 'birthDate':
-                nextQuestion = 'Qual é a especialidade médica desejada? (Ex: Cardiologia)';
+                // Validação simples da data
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    addMessage({ from: 'bot', text: 'Por favor, use o formato YYYY-MM-DD (ex: 1990-05-15). Qual é a data de nascimento?' });
+                    return;
+                }
+                nextQuestion = 'Qual é a especialidade médica desejada? (Ex: Cardiologia, Dermatologia, Pediatria)';
                 nextStepName = 'specialty';
                 break;
             case 'specialty':
@@ -89,12 +99,12 @@ const ConsultasPage = () => {
                 nextStepName = 'reason';
                 break;
             case 'reason':
-                const summary = `Ótimo, vamos confirmar os dados:\n` +
-                    `Nome: ${updatedData.name}\n` +
-                    `Data de Nasc.: ${updatedData.birthDate}\n` +
-                    `Especialidade: ${updatedData.specialty}\n` +
-                    `Motivo: ${updatedData.reason}\n\n` +
-                    `Se tudo estiver correto, por favor, clique em "Confirmar Agendamento".`;
+                const summary = `✅ **Resumo do Agendamento:**\n\n` +
+                    `👤 **Nome:** ${updatedData.name}\n` +
+                    `🎂 **Data de Nascimento:** ${updatedData.birthDate}\n` +
+                    `🎯 **Especialidade:** ${updatedData.specialty}\n` +
+                    `📝 **Motivo:** ${updatedData.reason}\n\n` +
+                    `Se todas as informações estiverem corretas, clique em "Confirmar Agendamento".`;
                 nextQuestion = summary;
                 nextStepName = 'confirm';
                 break;
@@ -108,22 +118,36 @@ const ConsultasPage = () => {
 
     const handleSendMessage = () => {
         if (!input.trim() || isLoading || conversationStep === 'confirm' || conversationStep === 'done') return;
-        addMessage({ from: 'user', text: input });
-        nextStep(conversationStep, input);
+        
+        const userMessage = input;
+        addMessage({ from: 'user', text: userMessage });
+        nextStep(conversationStep, userMessage);
     };
 
     const handleConfirmBooking = async () => {
         if (conversationStep !== 'confirm' || !bookingData.name || !bookingData.birthDate || !bookingData.specialty || !bookingData.reason) return;
 
         setIsLoading(true);
-        addMessage({ from: 'user', text: 'Confirmar Agendamento' });
+        addMessage({ from: 'user', text: '✅ Confirmar Agendamento' });
 
         try {
             const response = await bookAppointmentRequest(bookingData as BookingRequestProps);
-            addMessage({ from: 'bot', text: response.message });
-            // Recarregar a lista de consultas após agendamento bem-sucedido
-            if (activeTab === 'minhas-consultas') {
-                loadMyAppointments();
+            
+            if (response.success) {
+                addMessage({ 
+                    from: 'bot', 
+                    text: `🎉 ${response.message}\n\n📋 **Protocolo:** ${response.protocol}\n\nSua consulta foi agendada com sucesso! Você pode acompanhar o status na aba "Minhas Consultas".` 
+                });
+                
+                // Limpar dados do agendamento
+                setBookingData({});
+                
+                // Recarregar a lista de consultas se estiver na aba correta
+                if (activeTab === 'minhas-consultas') {
+                    loadMyAppointments();
+                }
+            } else {
+                addMessage({ from: 'bot', text: `❌ ${response.message || 'Erro ao agendar consulta.'}` });
             }
         } catch (error) {
             handleApiError(error);
@@ -133,12 +157,21 @@ const ConsultasPage = () => {
         }
     };
 
+    const resetConversation = () => {
+        setMessages([
+            { from: 'bot', text: 'Olá! Vamos iniciar o seu agendamento. Por favor, qual é o nome completo do paciente?' }
+        ]);
+        setInput("");
+        setConversationStep('name');
+        setBookingData({});
+    };
+
     const getPlaceholder = () => {
         switch(conversationStep) {
             case 'name': return 'Digite o nome completo...';
-            case 'birthDate': return 'Digite a data de nascimento...';
-            case 'specialty': return 'Digite a especialidade...';
-            case 'reason': return 'Digite o motivo...';
+            case 'birthDate': return 'YYYY-MM-DD (ex: 1990-05-15)';
+            case 'specialty': return 'Ex: Cardiologia, Dermatologia...';
+            case 'reason': return 'Descreva o motivo da consulta...';
             case 'confirm':
             case 'done': return 'Conversa finalizada.';
             default: return 'Digite a sua mensagem...';
@@ -147,6 +180,10 @@ const ConsultasPage = () => {
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('pt-BR');
+    };
+
+    const formatTime = (timeString: string) => {
+        return timeString; // Você pode formatar o tempo se necessário
     };
 
     const getStatusColor = (status: string) => {
@@ -212,6 +249,18 @@ const ConsultasPage = () => {
                                 transition={{ duration: 0.3 }}
                                 className="h-full flex flex-col"
                             >
+                                {/* BOTÃO DE REINICIAR CONVERSA */}
+                                {conversationStep === 'done' && (
+                                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                                        <button
+                                            onClick={resetConversation}
+                                            className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors duration-300 text-sm"
+                                        >
+                                            ↗ Iniciar Novo Agendamento
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* MENSAGENS DO CHAT */}
                                 <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-gradient-to-b from-gray-50 to-white">
                                     {messages.map((msg, idx) => (
@@ -258,22 +307,30 @@ const ConsultasPage = () => {
                                 {/* INPUT E BOTÃO DE CONFIRMAÇÃO */}
                                 <div className="p-4 border-t bg-white border-gray-200 flex-shrink-0">
                                     {conversationStep === 'confirm' ? (
-                                        <motion.button
-                                            initial={{ scale: 0.9, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            onClick={handleConfirmBooking}
-                                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-6 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 disabled:from-gray-400 disabled:to-gray-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                                            disabled={isLoading}
-                                        >
-                                            {isLoading ? (
-                                                <div className="flex items-center justify-center">
-                                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                                    Confirmando...
-                                                </div>
-                                            ) : (
-                                                'Confirmar Agendamento'
-                                            )}
-                                        </motion.button>
+                                        <div className="flex gap-3">
+                                            <motion.button
+                                                initial={{ scale: 0.9, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                onClick={handleConfirmBooking}
+                                                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-6 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 disabled:from-gray-400 disabled:to-gray-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                                                disabled={isLoading}
+                                            >
+                                                {isLoading ? (
+                                                    <div className="flex items-center justify-center">
+                                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                                        Confirmando...
+                                                    </div>
+                                                ) : (
+                                                    '✅ Confirmar Agendamento'
+                                                )}
+                                            </motion.button>
+                                            <button
+                                                onClick={resetConversation}
+                                                className="px-6 py-4 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300"
+                                            >
+                                                ↻ Recomeçar
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div className="flex items-center gap-3">
                                             <input
@@ -358,75 +415,81 @@ const ConsultasPage = () => {
                                                     transition={{ delay: index * 0.1 }}
                                                     className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-300"
                                                 >
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-4 mb-3">
-                                                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
-                                                                    {getStatusText(appointment.status)}
-                                                                </div>
-                                                                <span className="text-sm text-gray-500 font-mono">
-                                                                    Protocolo: {appointment.protocol}
-                                                                </span>
+                                                    <div className="flex items-start justify-between mb-4">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+                                                                {getStatusText(appointment.status)}
                                                             </div>
-                                                            
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <User size={18} className="text-emerald-500" />
-                                                                    <div>
-                                                                        <p className="text-sm text-gray-600">Paciente</p>
-                                                                        <p className="font-semibold text-gray-800">{appointment.patientName}</p>
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                <div className="flex items-center gap-3">
-                                                                    <Calendar size={18} className="text-emerald-500" />
-                                                                    <div>
-                                                                        <p className="text-sm text-gray-600">Nascimento</p>
-                                                                        <p className="font-semibold text-gray-800">{formatDate(appointment.birthDate)}</p>
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                <div className="flex items-center gap-3">
-                                                                    <Stethoscope size={18} className="text-emerald-500" />
-                                                                    <div>
-                                                                        <p className="text-sm text-gray-600">Especialidade</p>
-                                                                        <p className="font-semibold text-gray-800">{appointment.specialty}</p>
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                {appointment.preferredDate && (
-                                                                    <div className="flex items-center gap-3">
-                                                                        <Clock size={18} className="text-emerald-500" />
-                                                                        <div>
-                                                                            <p className="text-sm text-gray-600">Data Preferida</p>
-                                                                            <p className="font-semibold text-gray-800">{formatDate(appointment.preferredDate)}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            
-                                                            {appointment.reason && (
-                                                                <div className="mt-4 flex items-start gap-3">
-                                                                    <FileText size={18} className="text-emerald-500 mt-0.5" />
-                                                                    <div>
-                                                                        <p className="text-sm text-gray-600">Motivo da Consulta</p>
-                                                                        <p className="text-gray-800">{appointment.reason}</p>
-                                                                    </div>
-                                                                </div>
-                                                            )}
+                                                            <span className="text-sm text-gray-500 font-mono">
+                                                                Protocolo: {appointment.protocol}
+                                                            </span>
                                                         </div>
+                                                        
                                                     </div>
+                                                    
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                                        {/* Data e Hora */}
+                                                        <div className="flex items-center gap-3">
+                                                            <Calendar size={18} className="text-emerald-500" />
+                                                            <div>
+                                                                <p className="text-sm text-gray-600">Data</p>
+                                                                <p className="font-semibold text-gray-800">
+                                                                    {appointment.date ? formatDate(appointment.date) : 'A definir'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {appointment.time && (
+                                                            <div className="flex items-center gap-3">
+                                                                <Clock size={18} className="text-emerald-500" />
+                                                                <div>
+                                                                    <p className="text-sm text-gray-600">Horário</p>
+                                                                    <p className="font-semibold text-gray-800">{appointment.time}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        
+                                                        {/* Médico */}
+                                                        {appointment.doctor && (
+                                                            <div className="flex items-center gap-3">
+                                                                <User size={18} className="text-emerald-500" />
+                                                                <div>
+                                                                    <p className="text-sm text-gray-600">Médico</p>
+                                                                    <p className="font-semibold text-gray-800">{appointment.doctor.name}</p>
+                                                                    <p className="text-sm text-gray-600">{appointment.doctor.specialty}</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Localização */}
+                                                    {appointment.doctor?.city && (
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <MapPin size={16} className="text-emerald-500" />
+                                                            <span className="text-sm text-gray-600">{appointment.doctor.city}</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Notas */}
+                                                    {appointment.notes && (
+                                                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                                            <p className="text-sm text-gray-600 mb-1">Observações:</p>
+                                                            <p className="text-gray-800 text-sm">{appointment.notes}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Motivo do Cancelamento */}
+                                                    {appointment.cancellationReason && (
+                                                        <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                                                            <p className="text-sm text-red-600 mb-1">Motivo do cancelamento:</p>
+                                                            <p className="text-red-800 text-sm">{appointment.cancellationReason}</p>
+                                                        </div>
+                                                    )}
                                                     
                                                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                                                         <span className="text-sm text-gray-500">
-                                                            Agendado em: {formatDate(appointment.createdAt)}
+                                                            Criado em: {formatDate(appointment.createdAt)}
                                                         </span>
-                                                        {appointment.status === 'scheduled' && (
-                                                            <button className="flex items-center gap-2 text-red-500 hover:text-red-700 transition-colors duration-300 text-sm">
-                                                                <Trash2 size={16} />
-                                                                Cancelar
-                                                            </button>
-                                                        )}
                                                     </div>
                                                 </motion.div>
                                             ))}
