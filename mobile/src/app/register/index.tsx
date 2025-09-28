@@ -6,6 +6,7 @@ import { z } from "zod";
 import { s } from "./styles";
 import Input from "@/src/components/input";
 import Unimed from "@/src/assets/unimed.svg";
+import { registerRequest } from "@/src/api/api";
 
 const onlyDigits = (v: string) => v.replace(/\D/g, "");
 const formatCPF = (v: string) => {
@@ -89,7 +90,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const data = {
       name: name.trim(),
       email: email.trim(),
@@ -105,7 +106,13 @@ export default function RegisterScreen() {
       Alert.alert("Erro no cadastro", first);
       return;
     }
-    Alert.alert("Tudo certo!", "Cadastro validado com sucesso (mock).");
+
+    const res = await registerRequest({...data})
+
+    if (res) {
+      Alert.alert("Tudo certo!", "Cadastro validado com sucesso (mock).");
+      navigation.navigate("Login" as never)
+    }
   };
 
   return (

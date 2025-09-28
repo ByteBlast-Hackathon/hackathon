@@ -3,7 +3,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import LoginScreen from "../app/login/index";
 import RegisterScreen from "../app/register/index";
-import HomeScreen from "../app/home/index";
+import ChatScreen from "../app/chat";
+import UserScreen from "../app/user";
 
 const Stack = createNativeStackNavigator();
 
@@ -22,8 +23,13 @@ export default function Routes() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Home"
-          component={HomeScreen}
+          name="Chat"
+          component={ChatScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="User"
+          component={UserScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

@@ -1,0 +1,1 @@
+export type Msg = { id: string; from: "ai" | "user"; text: string };

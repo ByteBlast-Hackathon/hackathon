@@ -1,12 +1,13 @@
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { z } from "zod";
 import { s } from "./styles";
 import Input from "@/src/components/input";
 import Unimed from "@/src/assets/unimed.svg";
+import { loginRequest } from "@/src/api/api";
+import { saveToken } from "@/src/storage/AsyncStorage";
 
-// ⬇️ Schema Zod (mesmas regras do Register para email e password)
 const loginSchema = z.object({
   email: z.string().email({ message: "Email inválido" })
     .refine((val) => /@gmail\.com$/i.test(val), {
@@ -16,15 +17,16 @@ const loginSchema = z.object({
     .refine((v) => /[A-Z]/.test(v), { message: "Deve conter ao menos uma letra maiúscula" })
     .refine((v) => /[a-z]/.test(v), { message: "Deve conter ao menos uma letra minúscula" })
     .refine((v) => /\d/.test(v),    { message: "Deve conter ao menos um número" })
-    .refine((v) => /[!@#$%^&*(),.?":{}|<>]/.test(v), { message: "Deve conter ao menos um caractere especial" }),
+    .refine((v) => /[!@#$%^&*(),.?\":{}|<>]/.test(v), { message: "Deve conter ao menos um caractere especial" }),
 });
 
 function LoginScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function onSubmit() {
+  async function onSubmit() {
     const parsed = loginSchema.safeParse({
       email: email.trim(),
       password,
@@ -36,10 +38,32 @@ function LoginScreen() {
       return;
     }
 
-    // sucesso (mock)
-    Alert.alert("Tudo certo!", "Login validado com sucesso (mock).");
-    // navegação ou chamada de API aqui
-    // navigation.navigate("Home" as never);
+    try {
+      setLoading(true);
+      const res = await loginRequest({ email: email.trim(), password });
+
+      if (res) {
+        Alert.alert("Tudo certo!", "Login validado com sucesso.");
+        await saveToken(res)
+        navigation.navigate("Chat" as never);
+      } else {
+        Alert.alert("Erro", "Credenciais inválidas ou resposta inesperada.");
+      }
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || "Falha no login";
+      Alert.alert("Erro no login", msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <View style={[s.screen, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#00995D" />
+        <Text style={{ marginTop: 8, color: "#333" }}>Entrando...</Text>
+      </View>
+    );
   }
 
   return (
@@ -81,7 +105,7 @@ function LoginScreen() {
         </View>
 
         <View style={s.containerButton}>
-          <TouchableOpacity style={s.button} onPress={onSubmit}>
+          <TouchableOpacity style={s.button} onPress={onSubmit} disabled={loading}>
             <Text style={s.textButton}>LOGIN</Text>
           </TouchableOpacity>
         </View>
