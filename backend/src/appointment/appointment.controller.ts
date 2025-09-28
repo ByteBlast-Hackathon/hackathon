@@ -485,4 +485,93 @@ export class AppointmentController {
       total: doctors.length
     };
   }
+
+  // -----------------------
+  // NOVOS ENDPOINTS ADICIONADOS
+  // -----------------------
+
+  // Endpoint para reservar fluxo completo (completeAppointmentBooking)
+  @Post('complete-booking')
+  @ApiOperation({ summary: 'Fluxo completo de agendamento (dados do paciente + preferências)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'João da Silva' },
+        birthDate: { type: 'string', example: '1980-05-12' },
+        specialty: { type: 'string', example: 'cardiology' },
+        reason: { type: 'string', example: 'Dor no peito' },
+        preferredDate: { type: 'string', example: '2025-10-05' },
+        preferredTime: { type: 'string', example: '09:00' },
+        city: { type: 'string', example: 'São Paulo' }
+      },
+      required: ['name', 'birthDate', 'specialty', 'reason']
+    }
+  })
+  @ApiResponse({ status: 201, description: 'Fluxo de agendamento completo executado' })
+  async completeAppointmentBooking(
+    @GetUser() user: User,
+    @Body() body: {
+      name: string;
+      birthDate: string;
+      specialty: string;
+      reason: string;
+      preferredDate?: string;
+      preferredTime?: string;
+      city?: string;
+    }
+  ) {
+    const result = await this.appointmentService.completeAppointmentBooking(
+      user.id,
+      {
+        name: body.name,
+        birthDate: body.birthDate,
+        specialty: body.specialty,
+        reason: body.reason,
+        preferredDate: body.preferredDate,
+        preferredTime: body.preferredTime,
+        city: body.city
+      }
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message,
+        data: null
+      };
+    }
+
+    return {
+      success: true,
+      message: result.message,
+      protocol: result.protocol,
+      data: result.appointmentDetails
+    };
+  }
+
+  // Endpoint para visualizar agendas formatadas (getAvailableSchedules)
+  @Get('schedules')
+  @ApiOperation({ summary: 'Visualizar agendas disponíveis (formatado)' })
+  @ApiQuery({ name: 'specialty', required: false, description: 'Especialidade médica' })
+  @ApiQuery({ name: 'city', required: false, description: 'Cidade' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Data inicial (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'Data final (YYYY-MM-DD)' })
+  @ApiResponse({ status: 200, description: 'Agendas formatadas' })
+  async getAvailableSchedules(
+    @Query('specialty') specialty?: string,
+    @Query('city') city?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string
+  ) {
+    const start = startDate ? new Date(startDate) : undefined;
+    const end = endDate ? new Date(endDate) : undefined;
+
+    const schedules = await this.appointmentService.getAvailableSchedules(specialty, city, start, end);
+
+    return {
+      success: true,
+      data: schedules
+    };
+  }
 }
