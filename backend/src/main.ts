@@ -23,11 +23,9 @@ async function bootstrap() {
 
    
     const config = new DocumentBuilder()
-      .setTitle('API NestJS - CRUD de Usuário')
-      .setDescription('Documentação completa da API gerada pelo Gemini 2.5 Pro.')
+      .setTitle('API Hackathon 2025 - Equipe ByteBlast')
+      .setDescription('API para gestão de usuários, agendamentos e funcionalidades de IA.')
       .setVersion('1.0')
-      .addTag('Users', 'Operações relacionadas a usuários')
-      .addTag('AI', 'Operações de IA')
       .addBearerAuth()
       .build();
 
