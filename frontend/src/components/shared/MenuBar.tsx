@@ -4,6 +4,7 @@ import React, {useState} from "react";
 import Image from "next/image";
 import {ChartNoAxesColumnIncreasingIcon, LogOutIcon} from "lucide-react";
 import MenuItem from "@/components/MenuItem";
+import {useCurrentPage} from "@/lib/slug";
 
 const MenuBar = () => {
     const [minimized, setMinimized] = useState(false);
@@ -12,7 +13,10 @@ const MenuBar = () => {
     const onToggleKey = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") toggleMinimize();
     };
+    const path = useCurrentPage();
+    console.log(path);
 
+    if(path != "/auth")
     return (
         <div className={"hidden lg:flex items-center h-screen"}>
             <div className={`flex justify-between bg-primary ${minimized ? "w-26" : "w-95"} h-[95dvh] rounded-lg shadow-lg mx-6 flex-col transition-all duration-200`}>

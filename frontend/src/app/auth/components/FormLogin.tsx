@@ -8,6 +8,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {EyeClosedIcon, EyeIcon} from "lucide-react";
 import {useState} from "react";
+import {loginRequest} from "@/api/requests/auth";
 
 const formSchema = z.object({
     email: z.string().email({
@@ -45,7 +46,8 @@ const FormRegister = ({ onToggle }: { onToggle: () => void }) => {
     })
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+        console.log("teste",values)
+        loginRequest({...values})
     }
 
     return (
@@ -56,7 +58,7 @@ const FormRegister = ({ onToggle }: { onToggle: () => void }) => {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Gmail</FormLabel>
+                            <FormLabel>Email</FormLabel>
                             <FormControl>
                                 <Input type={"email"} placeholder={"Insira seu Melhor email"} {...field}/>
                             </FormControl>

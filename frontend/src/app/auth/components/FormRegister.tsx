@@ -8,6 +8,7 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {EyeClosedIcon, EyeIcon} from "lucide-react";
+import {registerRequest} from "@/api/requests/auth";
 
 const formSchema = z.object({
     name: z.string().min(10, {
@@ -94,8 +95,13 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
         // normalmente você não enviaria confirmPassword ao backend
         const { confirmPassword, ...payload } = values
         if (confirmPassword == payload.password) {
-            // aqui payload.cpf e payload.phone são apenas dígitos (raw)
-            console.log('submit payload', payload)
+            const finalPayload = {
+                ...payload,
+                cpf: formatCPF(payload.cpf ?? ""),
+                phone: formatPhone(payload.phone ?? ""),
+            }
+
+            registerRequest({...finalPayload})
         }
     }
 
