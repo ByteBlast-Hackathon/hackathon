@@ -29,6 +29,33 @@ interface SlotGroup {
   }>;
 }
 
+interface AppointmentBookingData {
+  name: string;
+  birthDate: string;
+  specialty: string;
+  reason: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  city?: string;
+}
+
+interface AppointmentConfirmation {
+  success: boolean;
+  protocol: string;
+  message: string;
+  appointmentDetails: {
+    patientName: string;
+    patientBirthDate: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    doctorName: string;
+    doctorSpecialty: string;
+    doctorCity: string;
+    reason: string;
+    status: string;
+  };
+}
+
 @Injectable()
 export class AppointmentService {
   constructor(
@@ -61,12 +88,201 @@ export class AppointmentService {
     return date;
   }
 
+  // NOVO SERVIÇO: Fluxo completo de agendamento
+  async completeAppointmentBooking(
+    userId: number,
+    bookingData: AppointmentBookingData
+  ): Promise<AppointmentConfirmation> {
+    try {
+      // 1. Validar dados do usuário
+      if (!bookingData.name || !bookingData.birthDate || !bookingData.specialty || !bookingData.reason) {
+        throw new ConflictException('Todos os dados obrigatórios devem ser informados: nome, data de nascimento, especialidade e motivo da consulta');
+      }
+
+      // 2. Validar data de nascimento
+      const birthDate = new Date(bookingData.birthDate);
+      const today = new Date();
+      if (birthDate >= today) {
+        throw new ConflictException('Data de nascimento deve ser uma data passada');
+      }
+
+      // 3. Buscar horários disponíveis baseado na especialidade e cidade
+      const availableSlots = await this.getAvailableSlots(
+        bookingData.specialty,
+        bookingData.city
+      );
+
+      if (availableSlots.length === 0) {
+        throw new NotFoundException('Não há horários disponíveis para a especialidade e critérios informados');
+      }
+
+      // 4. Selecionar o primeiro horário disponível (simulação de escolha)
+      let selectedSlot: any = null;
+      let selectedDoctor: any = null;
+
+      // Tentar encontrar horário na data preferida, se fornecida
+      if (bookingData.preferredDate) {
+        for (const day of availableSlots) {
+          if (day.date === bookingData.preferredDate) {
+            for (const doctorData of day.doctors) {
+              if (doctorData.slots.length > 0) {
+                selectedSlot = doctorData.slots[0];
+                selectedDoctor = doctorData.doctor;
+                break;
+              }
+            }
+          }
+          if (selectedSlot) break;
+        }
+      }
+
+      // Se não encontrou na data preferida, pegar o primeiro disponível
+      if (!selectedSlot) {
+        for (const day of availableSlots) {
+          for (const doctorData of day.doctors) {
+            if (doctorData.slots.length > 0) {
+              selectedSlot = doctorData.slots[0];
+              selectedDoctor = doctorData.doctor;
+              break;
+            }
+          }
+          if (selectedSlot) break;
+        }
+      }
+
+      if (!selectedSlot || !selectedDoctor) {
+        throw new NotFoundException('Não foi possível encontrar um horário disponível');
+      }
+
+      // 5. Agendar a consulta
+      const appointment = await this.scheduleAppointment(
+        userId,
+        selectedSlot.id,
+        bookingData.reason
+      );
+
+      // 6. Buscar dados completos do médico
+      const doctor = await this.doctorRepository.findOne({
+        where: { id: selectedDoctor.id }
+      });
+
+      if (!doctor) {
+        throw new NotFoundException('Médico não encontrado');
+      }
+
+      // 7. Retornar confirmação com todos os dados
+      return {
+        success: true,
+        protocol: appointment.protocol,
+        message: 'Consulta agendada com sucesso!',
+        appointmentDetails: {
+          patientName: bookingData.name,
+          patientBirthDate: new Date(bookingData.birthDate).toLocaleDateString('pt-BR'),
+          appointmentDate: new Date(appointment.appointmentDate).toLocaleDateString('pt-BR'),
+          appointmentTime: appointment.appointmentTime,
+          doctorName: doctor.name,
+          doctorSpecialty: doctor.specialty,
+          doctorCity: doctor.city,
+          reason: bookingData.reason,
+          status: appointment.status
+        }
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        protocol: '',
+        message: `Erro no agendamento: ${error.message}`,
+        appointmentDetails: {
+          patientName: '',
+          patientBirthDate: '',
+          appointmentDate: '',
+          appointmentTime: '',
+          doctorName: '',
+          doctorSpecialty: '',
+          doctorCity: '',
+          reason: '',
+          status: ''
+        }
+      };
+    }
+  }
+
+  // NOVO SERVIÇO: Visualizar agendas disponíveis formatadas
+  async getAvailableSchedules(specialty?: string, city?: string, startDate?: Date, endDate?: Date): Promise<any> {
+    const availableSlots = await this.getAvailableSlots(specialty, city, startDate, endDate);
+
+    const formattedSchedules = availableSlots.map(day => ({
+      date: new Date(day.date).toLocaleDateString('pt-BR'),
+      dayOfWeek: this.getDayOfWeekPortuguese(new Date(day.date)),
+      availableDoctors: day.doctors.map(doctorData => ({
+        doctorId: doctorData.doctor.id,
+        doctorName: doctorData.doctor.name,
+        specialty: doctorData.doctor.specialty,
+        city: doctorData.doctor.city,
+        availableSlots: doctorData.slots.map(slot => ({
+          slotId: slot.id,
+          time: `${slot.startTime} - ${slot.endTime}`,
+          available: true
+        }))
+      }))
+    }));
+
+    return {
+      totalDays: formattedSchedules.length,
+      totalSlots: availableSlots.reduce((acc, day) => {
+        return acc + day.doctors.reduce((docAcc, doc) => docAcc + doc.slots.length, 0);
+      }, 0),
+      schedules: formattedSchedules
+    };
+  }
+
+  // MÉTODO AUXILIAR: Obter dia da semana em português
+  private getDayOfWeekPortuguese(date: Date): string {
+    const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    return days[date.getDay()];
+  }
+
+  // MÉTODO AUXILIAR: Validar especialidade
+  private validateSpecialty(specialty: string): boolean {
+    const validSpecialties = [
+      'cardiology', 'dermatology', 'endocrinology', 'gastroenterology',
+      'gynecology', 'neurology', 'orthopedics', 'pediatrics',
+      'psychiatry', 'urology', 'general_practice'
+    ];
+    return validSpecialties.includes(specialty.toLowerCase());
+  }
+
+  // MÉTODO AUXILIAR: Converter especialidade para formato interno
+  private mapSpecialtyToInternal(specialty: string): string {
+    const specialtyMap: { [key: string]: string } = {
+      'cardiologia': 'cardiology',
+      'dermatologia': 'dermatology',
+      'endocrinologia': 'endocrinology',
+      'gastroenterologia': 'gastroenterology',
+      'ginecologia': 'gynecology',
+      'neurologia': 'neurology',
+      'ortopedia': 'orthopedics',
+      'pediatria': 'pediatrics',
+      'psiquiatria': 'psychiatry',
+      'urologia': 'urology',
+      'clínica geral': 'general_practice',
+      'clinica geral': 'general_practice'
+    };
+
+    return specialtyMap[specialty.toLowerCase()] || specialty;
+  }
+
+  // Os métodos existentes continuam exatamente iguais abaixo...
+  // [TODO: MANTER TODOS OS MÉTODOS EXISTENTES SEM MODIFICAÇÕES]
+
   async getAvailableSlots(
     specialty?: string,
     city?: string,
     startDate?: Date,
     endDate?: Date
   ): Promise<any[]> {
+    // ... código existente mantido igual
     const query = this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -101,11 +317,9 @@ export class AppointmentService {
       .addOrderBy('timeSlot.start_time', 'ASC')
       .getMany();
 
-    // CORREÇÃO: Agrupar por data corretamente
     const groupedSlots: GroupedSlots = {};
 
     availableSlots.forEach(slot => {
-      // Usar o método formatDate para garantir consistência
       const dateKey = this.formatDate(slot.date);
       
       if (!groupedSlots[dateKey]) {
@@ -136,8 +350,8 @@ export class AppointmentService {
     }));
   }
 
-  // NOVO MÉTODO: Todos os horários disponíveis sem filtros
   async getAllAvailableSlots(): Promise<any[]> {
+    // ... código existente mantido igual
     const availableSlots = await this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -153,8 +367,8 @@ export class AppointmentService {
     return this.groupSlotsByDateAndDoctor(availableSlots);
   }
 
-  // NOVO MÉTODO: Horários por cidade
   async getAvailableSlotsByCity(city: string): Promise<any[]> {
+    // ... código existente mantido igual
     const availableSlots = await this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -171,8 +385,8 @@ export class AppointmentService {
     return this.groupSlotsByDateAndDoctor(availableSlots);
   }
 
-  // NOVO MÉTODO: Horários por especialidade e cidade
   async getAvailableSlotsBySpecialtyAndCity(specialty: string, city: string): Promise<any[]> {
+    // ... código existente mantido igual
     const availableSlots = await this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -190,8 +404,8 @@ export class AppointmentService {
     return this.groupSlotsByDateAndDoctor(availableSlots);
   }
 
-  // MÉTODO AUXILIAR: Agrupar slots por data e médico
   private groupSlotsByDateAndDoctor(availableSlots: TimeSlot[]): any[] {
+    // ... código existente mantido igual
     const groupedSlots: GroupedSlots = {};
 
     availableSlots.forEach(slot => {
@@ -225,16 +439,16 @@ export class AppointmentService {
     }));
   }
 
-  // NOVO MÉTODO: Todos os médicos
   async getAllDoctors(): Promise<Doctor[]> {
+    // ... código existente mantido igual
     return await this.doctorRepository.find({
       where: { isActive: true },
       order: { name: 'ASC' }
     });
   }
 
-  // NOVO MÉTODO: Médicos por cidade
   async getDoctorsByCity(city: string): Promise<Doctor[]> {
+    // ... código existente mantido igual
     return await this.doctorRepository.find({
       where: { 
         isActive: true,
@@ -244,8 +458,8 @@ export class AppointmentService {
     });
   }
 
-  // NOVO MÉTODO: Cidades disponíveis
   async getAvailableCities(): Promise<string[]> {
+    // ... código existente mantido igual
     const cities = await this.doctorRepository
       .createQueryBuilder('doctor')
       .select('DISTINCT doctor.city', 'city')
@@ -256,8 +470,8 @@ export class AppointmentService {
     return cities.map(city => city.city).filter(city => city);
   }
 
-  // NOVO MÉTODO: Estatísticas de disponibilidade
   async getAvailabilityStats(): Promise<any> {
+    // ... código existente mantido igual
     const totalSlots = await this.timeSlotRepository.count({
       where: { isAvailable: true }
     });
@@ -301,6 +515,7 @@ export class AppointmentService {
     timeSlotId: number,
     notes?: string
   ): Promise<Appointment> {
+    // ... código existente mantido igual
     const timeSlot = await this.timeSlotRepository.findOne({
       where: { id: timeSlotId },
       relations: ['doctorSchedule', 'doctorSchedule.doctor']
@@ -317,7 +532,6 @@ export class AppointmentService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Converter a data do timeSlot para Date object para comparação
     const slotDate = typeof timeSlot.date === 'string' 
       ? new Date(timeSlot.date) 
       : timeSlot.date;
@@ -353,6 +567,7 @@ export class AppointmentService {
   }
 
   async getUserAppointments(userId: number): Promise<Appointment[]> {
+    // ... código existente mantido igual
     return await this.appointmentRepository.find({
       where: { user: { id: userId } },
       relations: ['doctor', 'timeSlot'],
@@ -361,6 +576,7 @@ export class AppointmentService {
   }
 
   async cancelAppointment(userId: number, appointmentId: number, reason?: string): Promise<Appointment> {
+    // ... código existente mantido igual
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
       relations: ['user', 'timeSlot']
@@ -401,6 +617,7 @@ export class AppointmentService {
   }
 
   async getAppointmentDetails(userId: number, appointmentId: number): Promise<Appointment> {
+    // ... código existente mantido igual
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
       relations: ['doctor', 'user', 'timeSlot']
@@ -418,6 +635,7 @@ export class AppointmentService {
   }
 
   async getDoctorsBySpecialty(specialty?: string, city?: string): Promise<Doctor[]> {
+    // ... código existente mantido igual
     const query = this.doctorRepository
       .createQueryBuilder('doctor')
       .where('doctor.is_active = :isActive', { isActive: true });
@@ -434,6 +652,7 @@ export class AppointmentService {
   }
 
   async processAppointmentRequest(userInput: string, userId: number): Promise<any> {
+    // ... código existente mantido igual
     const specialtyMatch = userInput.match(/(cardiologista|dermatologista|ortopedista|pediatra|neurologista|clínico geral)/i);
     const cityMatch = userInput.match(/(São Paulo|Rio de Janeiro|Belo Horizonte|Porto Alegre)/i);
     const dateMatch = userInput.match(/(amanhã|próxima semana|próximo mês|\d{1,2}\/\d{1,2}\/\d{4})/i);
@@ -479,6 +698,7 @@ export class AppointmentService {
   }
 
   private mapSpecialty(specialtyText: string): string {
+    // ... código existente mantido igual
     const specialtyMap: { [key: string]: string } = {
       'cardiologista': 'cardiology',
       'dermatologista': 'dermatology',
@@ -492,6 +712,7 @@ export class AppointmentService {
   }
 
   private generateSuggestions(availableSlots: any[], specialty?: string, city?: string): string[] {
+    // ... código existente mantido igual
     const suggestions: string[] = [];
 
     if (availableSlots.length === 0) {
@@ -520,6 +741,7 @@ export class AppointmentService {
     timeSlotId: number,
     userNotes?: string
   ): Promise<{ success: boolean; protocol: string; message: string; details: any }> {
+    // ... código existente mantido igual
     try {
       const appointment = await this.scheduleAppointment(userId, timeSlotId, userNotes);
 
