@@ -498,7 +498,7 @@ export class AppointmentController {
       properties: {
         name: { type: 'string', example: 'João da Silva' },
         birthDate: { type: 'string', example: '1980-05-12' },
-        specialty: { type: 'string', example: 'cardiology' },
+        specialty: { type: 'string', example: 'Cardiologia' },
         reason: { type: 'string', example: 'Dor no peito' },
         preferredDate: { type: 'string', example: '2025-10-05' },
         preferredTime: { type: 'string', example: '09:00' },

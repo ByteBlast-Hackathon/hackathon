@@ -102,13 +102,18 @@ export class AppointmentService {
       // 2. Validar data de nascimento
       const birthDate = new Date(bookingData.birthDate);
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
       if (birthDate >= today) {
         throw new ConflictException('Data de nascimento deve ser uma data passada');
       }
 
-      // 3. Buscar horários disponíveis baseado na especialidade e cidade
+      // 3. Converter especialidade para formato interno
+      const internalSpecialty = this.mapSpecialtyToInternal(bookingData.specialty);
+      
+      // 4. Buscar horários disponíveis baseado na especialidade e cidade
       const availableSlots = await this.getAvailableSlots(
-        bookingData.specialty,
+        internalSpecialty,
         bookingData.city
       );
 
@@ -116,19 +121,33 @@ export class AppointmentService {
         throw new NotFoundException('Não há horários disponíveis para a especialidade e critérios informados');
       }
 
-      // 4. Selecionar o primeiro horário disponível (simulação de escolha)
+      // 5. Selecionar horário baseado nas preferências
       let selectedSlot: any = null;
       let selectedDoctor: any = null;
 
-      // Tentar encontrar horário na data preferida, se fornecida
+      // Tentar encontrar horário na data e horário preferidos, se fornecidos
       if (bookingData.preferredDate) {
         for (const day of availableSlots) {
           if (day.date === bookingData.preferredDate) {
             for (const doctorData of day.doctors) {
               if (doctorData.slots.length > 0) {
-                selectedSlot = doctorData.slots[0];
-                selectedDoctor = doctorData.doctor;
-                break;
+                // Se tem horário preferido, tentar encontrar
+                if (bookingData.preferredTime) {
+                  const preferredSlot = doctorData.slots.find(slot => 
+                    slot.startTime === bookingData.preferredTime
+                  );
+                  if (preferredSlot) {
+                    selectedSlot = preferredSlot;
+                    selectedDoctor = doctorData.doctor;
+                    break;
+                  }
+                }
+                // Se não encontrou horário preferido ou não foi informado, pegar o primeiro
+                if (!selectedSlot) {
+                  selectedSlot = doctorData.slots[0];
+                  selectedDoctor = doctorData.doctor;
+                  break;
+                }
               }
             }
           }
@@ -154,14 +173,14 @@ export class AppointmentService {
         throw new NotFoundException('Não foi possível encontrar um horário disponível');
       }
 
-      // 5. Agendar a consulta
+      // 6. Agendar a consulta
       const appointment = await this.scheduleAppointment(
         userId,
         selectedSlot.id,
         bookingData.reason
       );
 
-      // 6. Buscar dados completos do médico
+      // 7. Buscar dados completos do médico
       const doctor = await this.doctorRepository.findOne({
         where: { id: selectedDoctor.id }
       });
@@ -170,7 +189,7 @@ export class AppointmentService {
         throw new NotFoundException('Médico não encontrado');
       }
 
-      // 7. Retornar confirmação com todos os dados
+      // 8. Retornar confirmação com todos os dados
       return {
         success: true,
         protocol: appointment.protocol,
@@ -181,10 +200,10 @@ export class AppointmentService {
           appointmentDate: new Date(appointment.appointmentDate).toLocaleDateString('pt-BR'),
           appointmentTime: appointment.appointmentTime,
           doctorName: doctor.name,
-          doctorSpecialty: doctor.specialty,
+          doctorSpecialty: this.mapSpecialtyToPortuguese(doctor.specialty),
           doctorCity: doctor.city,
           reason: bookingData.reason,
-          status: appointment.status
+          status: this.mapStatusToPortuguese(appointment.status)
         }
       };
 
@@ -210,7 +229,10 @@ export class AppointmentService {
 
   // NOVO SERVIÇO: Visualizar agendas disponíveis formatadas
   async getAvailableSchedules(specialty?: string, city?: string, startDate?: Date, endDate?: Date): Promise<any> {
-    const availableSlots = await this.getAvailableSlots(specialty, city, startDate, endDate);
+    // Converter especialidade para formato interno se fornecida
+    const internalSpecialty = specialty ? this.mapSpecialtyToInternal(specialty) : specialty;
+    
+    const availableSlots = await this.getAvailableSlots(internalSpecialty, city, startDate, endDate);
 
     const formattedSchedules = availableSlots.map(day => ({
       date: new Date(day.date).toLocaleDateString('pt-BR'),
@@ -218,7 +240,7 @@ export class AppointmentService {
       availableDoctors: day.doctors.map(doctorData => ({
         doctorId: doctorData.doctor.id,
         doctorName: doctorData.doctor.name,
-        specialty: doctorData.doctor.specialty,
+        specialty: this.mapSpecialtyToPortuguese(doctorData.doctor.specialty),
         city: doctorData.doctor.city,
         availableSlots: doctorData.slots.map(slot => ({
           slotId: slot.id,
@@ -243,16 +265,6 @@ export class AppointmentService {
     return days[date.getDay()];
   }
 
-  // MÉTODO AUXILIAR: Validar especialidade
-  private validateSpecialty(specialty: string): boolean {
-    const validSpecialties = [
-      'cardiology', 'dermatology', 'endocrinology', 'gastroenterology',
-      'gynecology', 'neurology', 'orthopedics', 'pediatrics',
-      'psychiatry', 'urology', 'general_practice'
-    ];
-    return validSpecialties.includes(specialty.toLowerCase());
-  }
-
   // MÉTODO AUXILIAR: Converter especialidade para formato interno
   private mapSpecialtyToInternal(specialty: string): string {
     const specialtyMap: { [key: string]: string } = {
@@ -267,14 +279,57 @@ export class AppointmentService {
       'psiquiatria': 'psychiatry',
       'urologia': 'urology',
       'clínica geral': 'general_practice',
-      'clinica geral': 'general_practice'
+      'clinica geral': 'general_practice',
+      'clínico geral': 'general_practice',
+      'clinico geral': 'general_practice'
     };
 
     return specialtyMap[specialty.toLowerCase()] || specialty;
   }
 
+  // MÉTODO AUXILIAR: Converter especialidade para português
+  private mapSpecialtyToPortuguese(specialty: string): string {
+    const specialtyMap: { [key: string]: string } = {
+      'cardiology': 'Cardiologia',
+      'dermatology': 'Dermatologia',
+      'endocrinology': 'Endocrinologia',
+      'gastroenterology': 'Gastroenterologia',
+      'gynecology': 'Ginecologia',
+      'neurology': 'Neurologia',
+      'orthopedics': 'Ortopedia',
+      'pediatrics': 'Pediatria',
+      'psychiatry': 'Psiquiatria',
+      'urology': 'Urologia',
+      'general_practice': 'Clínica Geral'
+    };
+
+    return specialtyMap[specialty.toLowerCase()] || specialty;
+  }
+
+  // MÉTODO AUXILIAR: Converter status para português
+  private mapStatusToPortuguese(status: AppointmentStatus): string {
+    const statusMap: { [key: string]: string } = {
+      'scheduled': 'Agendado',
+      'confirmed': 'Confirmado',
+      'completed': 'Concluído',
+      'cancelled': 'Cancelado',
+      'no_show': 'Não Compareceu'
+    };
+
+    return statusMap[status] || status;
+  }
+
+  // MÉTODO AUXILIAR: Validar especialidade
+  private validateSpecialty(specialty: string): boolean {
+    const validSpecialties = [
+      'cardiologia', 'dermatologia', 'endocrinologia', 'gastroenterologia',
+      'ginecologia', 'neurologia', 'ortopedia', 'pediatria',
+      'psiquiatria', 'urologia', 'clínica geral'
+    ];
+    return validSpecialties.includes(specialty.toLowerCase());
+  }
+
   // Os métodos existentes continuam exatamente iguais abaixo...
-  // [TODO: MANTER TODOS OS MÉTODOS EXISTENTES SEM MODIFICAÇÕES]
 
   async getAvailableSlots(
     specialty?: string,
@@ -282,7 +337,6 @@ export class AppointmentService {
     startDate?: Date,
     endDate?: Date
   ): Promise<any[]> {
-    // ... código existente mantido igual
     const query = this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -351,7 +405,6 @@ export class AppointmentService {
   }
 
   async getAllAvailableSlots(): Promise<any[]> {
-    // ... código existente mantido igual
     const availableSlots = await this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -368,7 +421,6 @@ export class AppointmentService {
   }
 
   async getAvailableSlotsByCity(city: string): Promise<any[]> {
-    // ... código existente mantido igual
     const availableSlots = await this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -386,7 +438,6 @@ export class AppointmentService {
   }
 
   async getAvailableSlotsBySpecialtyAndCity(specialty: string, city: string): Promise<any[]> {
-    // ... código existente mantido igual
     const availableSlots = await this.timeSlotRepository
       .createQueryBuilder('timeSlot')
       .innerJoinAndSelect('timeSlot.doctorSchedule', 'doctorSchedule')
@@ -405,7 +456,6 @@ export class AppointmentService {
   }
 
   private groupSlotsByDateAndDoctor(availableSlots: TimeSlot[]): any[] {
-    // ... código existente mantido igual
     const groupedSlots: GroupedSlots = {};
 
     availableSlots.forEach(slot => {
@@ -440,7 +490,6 @@ export class AppointmentService {
   }
 
   async getAllDoctors(): Promise<Doctor[]> {
-    // ... código existente mantido igual
     return await this.doctorRepository.find({
       where: { isActive: true },
       order: { name: 'ASC' }
@@ -448,7 +497,6 @@ export class AppointmentService {
   }
 
   async getDoctorsByCity(city: string): Promise<Doctor[]> {
-    // ... código existente mantido igual
     return await this.doctorRepository.find({
       where: { 
         isActive: true,
@@ -459,7 +507,6 @@ export class AppointmentService {
   }
 
   async getAvailableCities(): Promise<string[]> {
-    // ... código existente mantido igual
     const cities = await this.doctorRepository
       .createQueryBuilder('doctor')
       .select('DISTINCT doctor.city', 'city')
@@ -471,7 +518,6 @@ export class AppointmentService {
   }
 
   async getAvailabilityStats(): Promise<any> {
-    // ... código existente mantido igual
     const totalSlots = await this.timeSlotRepository.count({
       where: { isAvailable: true }
     });
@@ -515,7 +561,6 @@ export class AppointmentService {
     timeSlotId: number,
     notes?: string
   ): Promise<Appointment> {
-    // ... código existente mantido igual
     const timeSlot = await this.timeSlotRepository.findOne({
       where: { id: timeSlotId },
       relations: ['doctorSchedule', 'doctorSchedule.doctor']
@@ -567,7 +612,6 @@ export class AppointmentService {
   }
 
   async getUserAppointments(userId: number): Promise<Appointment[]> {
-    // ... código existente mantido igual
     return await this.appointmentRepository.find({
       where: { user: { id: userId } },
       relations: ['doctor', 'timeSlot'],
@@ -576,7 +620,6 @@ export class AppointmentService {
   }
 
   async cancelAppointment(userId: number, appointmentId: number, reason?: string): Promise<Appointment> {
-    // ... código existente mantido igual
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
       relations: ['user', 'timeSlot']
@@ -617,7 +660,6 @@ export class AppointmentService {
   }
 
   async getAppointmentDetails(userId: number, appointmentId: number): Promise<Appointment> {
-    // ... código existente mantido igual
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
       relations: ['doctor', 'user', 'timeSlot']
@@ -635,7 +677,6 @@ export class AppointmentService {
   }
 
   async getDoctorsBySpecialty(specialty?: string, city?: string): Promise<Doctor[]> {
-    // ... código existente mantido igual
     const query = this.doctorRepository
       .createQueryBuilder('doctor')
       .where('doctor.is_active = :isActive', { isActive: true });
@@ -652,12 +693,11 @@ export class AppointmentService {
   }
 
   async processAppointmentRequest(userInput: string, userId: number): Promise<any> {
-    // ... código existente mantido igual
-    const specialtyMatch = userInput.match(/(cardiologista|dermatologista|ortopedista|pediatra|neurologista|clínico geral)/i);
-    const cityMatch = userInput.match(/(São Paulo|Rio de Janeiro|Belo Horizonte|Porto Alegre)/i);
+    const specialtyMatch = userInput.match(/(cardiologia|dermatologia|ortopedia|pediatria|neurologia|clínica geral|ginecologia|psiquiatria|urologia|endocrinologia|gastroenterologia)/i);
+    const cityMatch = userInput.match(/(São Paulo|Rio de Janeiro|Belo Horizonte|Porto Alegre|Curitiba|Salvador|Fortaleza|Recife|Porto Alegre)/i);
     const dateMatch = userInput.match(/(amanhã|próxima semana|próximo mês|\d{1,2}\/\d{1,2}\/\d{4})/i);
 
-    const specialty = specialtyMatch ? this.mapSpecialty(specialtyMatch[1]) : undefined;
+    const specialty = specialtyMatch ? this.mapSpecialtyToInternal(specialtyMatch[1]) : undefined;
     const city = cityMatch ? cityMatch[1] : undefined;
 
     let startDate: Date | undefined;
@@ -698,21 +738,24 @@ export class AppointmentService {
   }
 
   private mapSpecialty(specialtyText: string): string {
-    // ... código existente mantido igual
     const specialtyMap: { [key: string]: string } = {
-      'cardiologista': 'cardiology',
-      'dermatologista': 'dermatology',
-      'ortopedista': 'orthopedics',
-      'pediatra': 'pediatrics',
-      'neurologista': 'neurology',
-      'clínico geral': 'general_practice'
+      'cardiologia': 'cardiology',
+      'dermatologia': 'dermatology',
+      'ortopedia': 'orthopedics',
+      'pediatria': 'pediatrics',
+      'neurologia': 'neurology',
+      'clínica geral': 'general_practice',
+      'ginecologia': 'gynecology',
+      'psiquiatria': 'psychiatry',
+      'urologia': 'urology',
+      'endocrinologia': 'endocrinology',
+      'gastroenterologia': 'gastroenterology'
     };
 
     return specialtyMap[specialtyText.toLowerCase()] || specialtyText;
   }
 
   private generateSuggestions(availableSlots: any[], specialty?: string, city?: string): string[] {
-    // ... código existente mantido igual
     const suggestions: string[] = [];
 
     if (availableSlots.length === 0) {
@@ -741,7 +784,6 @@ export class AppointmentService {
     timeSlotId: number,
     userNotes?: string
   ): Promise<{ success: boolean; protocol: string; message: string; details: any }> {
-    // ... código existente mantido igual
     try {
       const appointment = await this.scheduleAppointment(userId, timeSlotId, userNotes);
 
@@ -761,7 +803,7 @@ export class AppointmentService {
           date: appointment.appointmentDate.toLocaleDateString('pt-BR'),
           time: appointment.appointmentTime,
           doctor: doctor.name,
-          specialty: doctor.specialty,
+          specialty: this.mapSpecialtyToPortuguese(doctor.specialty),
           location: doctor.city
         }
       };
