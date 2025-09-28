@@ -15,6 +15,10 @@ export interface BookingRequestProps {
     city?: string;
 }
 
+export interface ChatRequestProps {
+  question: string;
+}
+
 export interface Appointment {
   id: number;
   protocol: string;
@@ -48,6 +52,17 @@ export interface BookingResponse {
   data?: Record<string, unknown>;
 }
 
+export interface ChatResponse {
+  success: boolean;
+  question: string;
+  answer: string;
+  relevantSections: RelevantSection[];
+  confidence: number;
+  source: string;
+  suggestedQuestions: string[];
+  timestamp: string;
+}
+
 // --- FUNÇÕES DE API ---
 
 const getAuthToken = () => {
@@ -73,6 +88,23 @@ export const getMyAppointments = async (): Promise<MyAppointmentsResponse> => {
       console.error("Erro inesperado ao buscar consultas:", error);
       throw new Error("Erro inesperado ao buscar consultas");
     }
+  }
+};
+
+export const askGenerativeAI = async ({ question }: ChatRequestProps): Promise<ChatResponse> => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.post(`${API_BASE_URL}/ai/chat`, { question }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Erro na pergunta à IA:", error.response?.data || error.message);
+    } else {
+      console.error("Erro inesperado na pergunta à IA:", error);
+    }
+    throw error;
   }
 };
 

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { SendHorizontal, Bot } from "lucide-react";
 // Importa a função de API necessária
-import { askGenerativeAI } from "@/api/requests/chat-bot";
+import { askGenerativeAI } from "../../api/requests/chat-bot";
 
 // --- Definições de Tipo ---
 interface Message {
