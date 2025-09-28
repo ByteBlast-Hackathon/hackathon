@@ -43,14 +43,14 @@ function LoginScreen() {
       const res = await loginRequest({ email: email.trim(), password });
 
       if (res) {
-        Alert.alert("Tudo certo!", "Login validado com sucesso.");
         await saveToken(res)
-        navigation.navigate("Chat" as never);
+        navigation.navigate("AskAI" as never);
       } else {
         Alert.alert("Erro", "Credenciais inválidas ou resposta inesperada.");
       }
     } catch (e: any) {
-      const msg = e?.response?.data?.error || e?.message || "Falha no login";
+      const apiData = e?.response?.data;
+      const msg = apiData?.message || apiData?.error || e?.message || "Falha no login";
       Alert.alert("Erro no login", msg);
     } finally {
       setLoading(false);

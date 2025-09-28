@@ -107,11 +107,13 @@ export default function RegisterScreen() {
       return;
     }
 
-    const res = await registerRequest({...data})
-
-    if (res) {
-      Alert.alert("Tudo certo!", "Cadastro validado com sucesso (mock).");
-      navigation.navigate("Login" as never)
+    try {
+      const res = await registerRequest({ ...data });
+      if (res) navigation.navigate("Login" as never);
+    } catch (e: any) {
+      const apiData = e?.response?.data;
+      const msg = apiData?.message || apiData?.error || e?.message || "Falha no cadastro";
+      Alert.alert("Erro no cadastro", msg);
     }
   };
 

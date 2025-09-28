@@ -4,8 +4,8 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList } 
 import { s } from "./styles";
 import type { Msg } from "./types";
 import { aiChat } from "@/src/api/api";
-import Menu from "@/src/components/menu";
-import ChatModeBar from "../../components/chatModeBar";
+import ScreenScaffold from "@/src/components/screenScaffold";
+import UnimedLogo from "@/src/assets/unimedIcon.svg";
 
 export default function AskAI({ navigation }: any) {
   const [msgs, setMsgs] = useState<Msg[]>([
@@ -60,15 +60,19 @@ export default function AskAI({ navigation }: any) {
   }
 
   return (
+      <ScreenScaffold
+      logo={UnimedLogo}
+      onPressLogo={() => navigation.navigate("User" as never)}
+      onPressSOS={() => navigation.navigate("SOS" as never)}
+      tab="ai"
+      onChangeTab={(k) => {
+        if (k === "ai") navigation.navigate("AskAI" as never);
+        if (k === "exam") navigation.navigate("VerifyExam" as never);
+        if (k === "booking") navigation.navigate("BookAppointment" as never);
+        if (k === "user") navigation.navigate("User" as never);
+      }}
+    >
     <View style={{ flex: 1 }}>
-      <ChatModeBar
-        value="ai"
-        onChange={(mode) => {
-          if (mode === "ai") return;
-          if (mode === "exam") navigation.navigate("VerifyExam");
-          if (mode === "booking") navigation.navigate("BookAppointment");
-        }}
-      />
 
       <FlatList
         inverted
@@ -123,8 +127,7 @@ export default function AskAI({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-
-      <Menu page="chat" isSelected icon="bot" onPress={(t) => navigation.navigate(t === "chat" ? "Chat" : "User")} />
     </View>
+    </ScreenScaffold>
   );
 }
