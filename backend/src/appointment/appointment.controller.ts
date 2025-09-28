@@ -31,7 +31,6 @@ import { User } from '../user/entities/user.entity';
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
-  // MÉTODO EXISTENTE - Consulta com filtros
   @Get('availability')
   @ApiOperation({ summary: 'Consultar horários disponíveis' })
   @ApiQuery({ name: 'specialty', required: false, description: 'Especialidade médica' })
