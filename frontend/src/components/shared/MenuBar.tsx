@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import {ChartNoAxesColumnIncreasingIcon, LogOutIcon, User, UserIcon} from "lucide-react";
+import { ChartNoAxesColumnIncreasingIcon, LogOutIcon, UserIcon } from "lucide-react";
 import MenuItem from "@/components/MenuItem";
 import { useCurrentPage } from "@/lib/slug";
 
@@ -11,21 +11,21 @@ const MenuBar = () => {
     const [userName, setUserName] = useState<string>("");
 
     useEffect(() => {
-        // Tenta buscar o nome do usuário do localStorage
-        const user = localStorage.getItem("user");
-        if (user) {
-            try {
-                const parsed = JSON.parse(user);
-                setUserName(parsed.name || "");
-            } catch {
-                setUserName("");
-            }
+        // Busca o nome salvo no localStorage
+        try {
+            const user = localStorage.getItem("name");
+            if (user) {
+                setUserName(user);
+                }
+
+        } catch {
+            setUserName("");
         }
     }, []);
 
     // Função para pegar as iniciais (primeira letra do primeiro e último nome)
     function getInitials(name: string) {
-        if (!name) return "NU";
+        if (!name) return "NU"; // Nome Usuário
         const parts = name.trim().split(" ").filter(Boolean);
         if (parts.length === 1) return parts[0][0].toUpperCase();
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -99,7 +99,7 @@ const MenuBar = () => {
                     </div>
 
                     {/* Menu Mobile Fixo Inferior */}
-                    <nav className="fixed bottom-0 left-0 px-6  right-0 z-50 flex lg:hidden bg-primary text-white border-t border-green-700 shadow-lg justify-around items-center py-2">
+                    <nav className="fixed bottom-0 left-0 px-6 right-0 z-50 flex lg:hidden bg-primary text-white border-t border-green-700 shadow-lg justify-around items-center py-2">
                         {menuItems.map((item) => (
                             <MenuItem
                                 key={item.name}
@@ -113,21 +113,20 @@ const MenuBar = () => {
                         {/* Perfil no mobile */}
                         <button className="flex flex-col items-center gap-1 font-bold rounded-full p-5 transition">
                             <UserIcon />
+                            {userName && <span className="text-xs">{getInitials(userName)}</span>}
                         </button>
                     </nav>
 
                     {/* Rodapé Desktop */}
-                    <div className={"hidden lg:flex justify-between items-center px-6 rounded-b-lg py-4 bg-[var(--primary-dark_green)] w-full"}>
+                    <div className="hidden lg:flex justify-between items-center px-6 rounded-b-lg py-4 bg-[var(--primary-dark_green)] w-full">
                         <div className={`flex gap-4 items-center ${minimized ? "justify-center w-full" : ""}`}>
-                            <div className="flex items-center gap-4 rounded-full bg-white text-black w-fit p-4 mt-auto">
+                            <div className="flex items-center justify-center gap-4 rounded-full bg-white text-black w-12 h-12 font-bold mt-auto">
                                 {getInitials(userName)}
                             </div>
-                            {!minimized && <p>{userName || "Nome do Usuáio"}</p>}
+                            {!minimized && <p>{userName}</p>}
                         </div>
-                        {minimized ? (
-                            <ChartNoAxesColumnIncreasingIcon className={"size-6 rotate-90"} />
-                        ) : (
-                            <LogOutIcon className={"text-destructive size-6"} />
+                        {!minimized && (
+                            <LogOutIcon className="text-destructive size-6 cursor-pointer" />
                         )}
                     </div>
                 </div>
