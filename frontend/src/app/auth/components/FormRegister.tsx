@@ -19,6 +19,27 @@ const formSchema = z.object({
     }).refine((val) => /@gmail\.com$/i.test(val), {
         message: "O email deve ser um Gmail (ex: usuario@gmail.com)",
     }),
+    // CPF: armazenamos somente dígitos (11)
+    cpf: z.string().refine((val) => /^\d{11}$/.test(val), {
+        message: "CPF inválido. Deve conter 11 dígitos.",
+    }),
+    // data de nascimento: garantir idade >= 18
+    birthDate: z.string().refine((val) => {
+        // espera formato YYYY-MM-DD (input type=date)
+        const d = new Date(val)
+        if (Number.isNaN(d.getTime())) return false
+        const today = new Date()
+        let age = today.getFullYear() - d.getFullYear()
+        const m = today.getMonth() - d.getMonth()
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--
+        return age >= 18
+    }, {
+        message: "Você deve ter pelo menos 18 anos",
+    }),
+    // phone: 10 ou 11 dígitos (com DDD)
+    phone: z.string().refine((val) => /^\d{10,11}$/.test(val), {
+        message: "Número de celular inválido (incluir DDD, 10 ou 11 dígitos)",
+    }),
     // regras de complexidade para password
     password: z.string().min(8, {
         message: "Senha deve ter no minimo 8 caracteres",
@@ -61,6 +82,9 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
         defaultValues: {
             name: "",
             email: "",
+            cpf: "",
+            birthDate: "",
+            phone: "",
             password: "",
             confirmPassword: "",
         },
@@ -70,8 +94,28 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
         // normalmente você não enviaria confirmPassword ao backend
         const { confirmPassword, ...payload } = values
         if (confirmPassword == payload.password) {
-            console.log(payload)
+            // aqui payload.cpf e payload.phone são apenas dígitos (raw)
+            console.log('submit payload', payload)
         }
+    }
+
+    // helpers para formatar CPF e Phone no input visual, enquanto mantemos apenas dígitos no form state
+    const formatCPF = (digits: string) => {
+        const d = digits.replace(/\D/g, "").slice(0,11)
+        if (!d) return ""
+        if (d.length <= 3) return d
+        if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`
+        if (d.length <= 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`
+        return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`
+    }
+
+    const formatPhone = (digits: string) => {
+        const d = digits.replace(/\D/g, "").slice(0,11)
+        if (!d) return ""
+        if (d.length <= 2) return `(${d}`
+        if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`
+        if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
+        return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
     }
 
     return (
@@ -90,19 +134,91 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Gmail</FormLabel>
-                            <FormControl>
-                                <Input type={"email"} placeholder={"Insira seu Melhor email"} {...field}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Gmail</FormLabel>
+                                <FormControl>
+                                    <Input type={"email"} placeholder={"Insira seu Melhor email"} {...field}/>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* CPF */}
+                    <FormField
+                        control={form.control}
+                        name="cpf"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>CPF</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type={"text"}
+                                        inputMode="numeric"
+                                        placeholder={"000.000.000-00"}
+                                        value={formatCPF(field.value ?? "")}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, "").slice(0,11)
+                                            field.onChange(digits)
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Birth date */}
+                    <FormField
+                        control={form.control}
+                        name="birthDate"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Data de Nascimento</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type={"date"}
+                                        max={new Date().toISOString().slice(0,10)}
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Phone */}
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Celular (com DDD)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type={"tel"}
+                                        inputMode="tel"
+                                        placeholder={"(99) 99999-9999"}
+                                        value={formatPhone(field.value ?? "")}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, "").slice(0,11)
+                                            field.onChange(digits)
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                </div>
+
                 <FormField
                     control={form.control}
                     name="password"
@@ -139,6 +255,7 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                         </FormItem>
                     )}
                 />
+
                 <div className="flex justify-center items-center text-lg">
                     <p>Já possui conta?</p>
                     <Button type={"button"} className={"text-[var(--primary-light-green)] underline font-bold"} onClick={() => {

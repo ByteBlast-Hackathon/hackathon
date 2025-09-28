@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {Roboto} from "next/font/google";
 import "./globals.css";
 import React from "react";
+import MenuBar from "@/components/shared/MenuBar";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -22,8 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.variable} antialiased`}
+        className={`${roboto.variable} antialiased flex gap-6`}
       >
+      <MenuBar />
         {children}
       </body>
     </html>

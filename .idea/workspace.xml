@@ -4,14 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e10a3858-1706-49ff-99f3-21d1c014a9f3" name="Changes" comment="feat: criando a pagina de registrar e logar">
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/ui/icon-button.tsx" afterDir="false" />
+    <list default="true" id="e10a3858-1706-49ff-99f3-21d1c014a9f3" name="Changes" comment="feat: finalizando o design do login + registrar">
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/MenuItem.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/shared/MenuBar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/lib/reqs/auth.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/lib/token.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/lib/types/auth.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormLogin.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/public/logo_unimed_branco 1.png" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/public/logo_unimed_branco.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/components/FormRegister.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/auth/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/auth/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ui/button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/lib/utils.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,15 +76,19 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "/Users/arthurpvn/Desktop/Desenvolvedor/hackathon/backend/node_modules/prettier",
     "settings.editor.selected.configurable": "preferences.lookFeel",
     "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "/Users/arthurpvn/Desktop/Desenvolvedor/hackathon/frontend/node_modules/typescript/lib"
+    "ts.external.directory.path": "/Users/arthurpvn/Desktop/Desenvolvedor/hackathon/backend/node_modules/typescript/lib"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/frontend/public" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/frontend/src/lib/reqs" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -95,7 +106,7 @@
       <option name="presentableId" value="Default" />
       <updated>1758993738203</updated>
       <workItem from="1758993739270" duration="13685000" />
-      <workItem from="1759007764945" duration="5989000" />
+      <workItem from="1759007764945" duration="13008000" />
     </task>
     <task id="LOCAL-00001" summary="feat: criando a pagina de registrar e logar">
       <option name="closed" value="true" />
@@ -113,7 +124,15 @@
       <option name="project" value="LOCAL" />
       <updated>1759009192766</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="feat: finalizando o design do login + registrar">
+      <option name="closed" value="true" />
+      <created>1759014260289</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1759014260289</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -121,6 +140,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: criando a pagina de registrar e logar" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: criando a pagina de registrar e logar" />
+    <MESSAGE value="feat: finalizando o design do login + registrar" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: finalizando o design do login + registrar" />
   </component>
 </project>
