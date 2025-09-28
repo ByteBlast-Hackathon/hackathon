@@ -39,7 +39,6 @@ async function bootstrap() {
     await app.listen(port);
     
     console.log(`🚀 Aplicação rodando na porta: ${port}`);
-    console.log('RODANDO API ATUALIZADA');
     console.log(`📚 Documentação Swagger disponível em: http://localhost:${port}/api-docs`);
 
   } catch (error) {
