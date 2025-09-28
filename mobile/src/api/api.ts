@@ -19,8 +19,9 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.115:3000";
 export const api = axios.create({ baseURL: BASE_URL, timeout: 20000 });
 
 /** 1) Chat livre */
-export async function aiChat(message: string) {
-  const { data } = await api.post("/ai/chat", { message });
+export async function aiChat(question: string) {
+  const { data } = await api.post("/ai/chat", { question });
+  console.log('Data: ', data)
   return data; // espere { reply: string } ou ajuste conforme seu backend
 }
 
@@ -48,11 +49,13 @@ export async function verifyExam(file: { uri: string; name?: string; type?: stri
         console.warn("Token is not here")
     }
 
+    console.log('Token: ' + token)
+
     // deixe o axios/set native runtime cuidar do Content-Type/boundary
     const { data } = await api.post("/authorization/verify", form, {
         headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `${token}`
+            Authorization: `Bearer ${token}`
         }
     });
     console.log("verifyExam - response:", data);
@@ -75,7 +78,18 @@ export type BookingPayload = {
 };
 
 export async function completeBooking(payload: BookingPayload) {
-  const { data } = await api.post("/appointments/complete-booking", payload);
+    const token = await getToken();
+
+    if (!token) {
+        console.warn('Token is not here')
+        return
+    }
+
+  const { data } = await api.post("/appointments/complete-booking", payload, {
+    headers: {
+        Authorization: `Bearer ${token}`
+    }
+  });
   return data; // backend responde 201; retorne o que ele mandar
 }
 

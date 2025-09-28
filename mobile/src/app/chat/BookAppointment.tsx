@@ -19,8 +19,8 @@ const steps = [
 
 export default function BookAppointment({ navigation }: any) {
   const [msgs, setMsgs] = useState<Msg[]>([
-    { id: "m0", from: "ai", text: "Vamos agendar sua consulta. Vou perguntar rapidinho alguns dados." },
     { id: "m1", from: "ai", text: steps[0].prompt },
+    { id: "m0", from: "ai", text: "Vamos agendar sua consulta. Vou perguntar rapidinho alguns dados." },
   ]);
   const [form, setForm] = useState<BookingPayload>({
     name: "", birthDate: "", specialty: "", reason: "", preferredDate: "", preferredTime: "", city: "",

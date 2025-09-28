@@ -9,26 +9,41 @@ import ChatModeBar from "../../components/chatModeBar";
 
 export default function AskAI({ navigation }: any) {
   const [msgs, setMsgs] = useState<Msg[]>([
-    { id: "m0", from: "ai", text: "👋 Oi! Sou a UnIA. Me pergunte qualquer coisa sobre seu plano, exames e consultas." },
+    { id: "m0", from: "ai", text: "👋 Oi! Sou a UnIA. Me pergunte qualquer coisa sobre seu plano, e dúvidas frequentes." },
   ]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [suggested, setSuggested] = useState<string[]>([]);
   const idRef = useRef(1);
 
-  async function send() {
-    const content = text.trim();
-    if (!content) return;
-    setText("");
+  // fluxo unificado para perguntar (usado pelo input e pelos chips)
+  async function ask(content: string) {
+    const question = content.trim();
+    if (!question) return;
 
-    const userMsg: Msg = { id: `u${idRef.current++}`, from: "user", text: content };
+    // limpa input só quando veio do campo
+    if (text.trim() === question) setText("");
+
+    const userMsg: Msg = { id: `u${idRef.current++}`, from: "user", text: question };
     setMsgs((prev) => [userMsg, ...prev]);
 
     try {
       setLoading(true);
-      const data = await aiChat(content); // espera { reply: string }
-      const aiMsg: Msg = { id: `a${idRef.current++}`, from: "ai", text: data?.reply ?? "Ok, anotado." };
+      const data = await aiChat(question);
+      // data esperado: { answer: string, confidence?: number, source?: string, suggestedQuestions?: string[] }
+      const pieces: string[] = [];
+      pieces.push(data?.answer || "Ok, anotado.");
+
+      const aiMsg: Msg = { id: `a${idRef.current++}`, from: "ai", text: pieces.join(" ") };
       setMsgs((prev) => [aiMsg, ...prev]);
-    } catch {
+
+      // atualiza chips de sugestão (até 5)
+      if (Array.isArray(data?.suggestedQuestions) && data.suggestedQuestions.length) {
+        setSuggested(data.suggestedQuestions.slice(0, 5));
+      } else {
+        setSuggested([]);
+      }
+    } catch (e) {
       setMsgs((prev) => [
         { id: `e${idRef.current++}`, from: "ai", text: "⚠️ Não consegui responder agora. Tente novamente." },
         ...prev,
@@ -38,16 +53,23 @@ export default function AskAI({ navigation }: any) {
     }
   }
 
+  async function send() {
+    const content = text.trim();
+    if (!content) return;
+    await ask(content);
+  }
+
   return (
     <View style={{ flex: 1 }}>
-        <ChatModeBar
-            value="ai"
-            onChange={(mode) => {
-                if (mode === "ai") return;
-                if (mode === "exam") navigation.navigate("VerifyExam");
-                if (mode === "booking") navigation.navigate("BookAppointment");
-            }}
-        />
+      <ChatModeBar
+        value="ai"
+        onChange={(mode) => {
+          if (mode === "ai") return;
+          if (mode === "exam") navigation.navigate("VerifyExam");
+          if (mode === "booking") navigation.navigate("BookAppointment");
+        }}
+      />
+
       <FlatList
         inverted
         data={msgs}
@@ -62,6 +84,30 @@ export default function AskAI({ navigation }: any) {
           </View>
         )}
       />
+
+      {/* Quick replies (chips) */}
+      {suggested.length > 0 && (
+        <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {suggested.map((q, i) => (
+              <TouchableOpacity
+                key={`${q}-${i}`}
+                onPress={() => ask(q)}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 16,
+                  backgroundColor: "#F1F5F4",
+                  borderWidth: 1,
+                  borderColor: "#E3E8E6",
+                }}
+              >
+                <Text style={{ fontSize: 13 }}>{q}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View style={s.bar}>
         <View style={s.row}>

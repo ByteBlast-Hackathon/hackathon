@@ -27,28 +27,28 @@ export default function VerifyExam({ navigation }: any) {
     }
   }
 
-  async function send() {
-    if (!file) return;
-    const userMsg: Msg = { id: `u${idRef.current++}`, from: "user", text: `📎 ${file.name || "arquivo"}` };
-    setMsgs((p) => [userMsg, ...p]);
+async function send() {
+  if (!file) return;
 
-    try {
-      setLoading(true);
-      const data = await verifyExam(file); // espera {status: "autorizado" | "auditoria"}
-      console.log("data: ")
-      const status = (data?.status || "").toString().toLowerCase();
-      const reply =
-        status.includes("autoriz") ?
-        "✅ Análise concluída: seu exame foi AUTORIZADO." :
-        "🕒 Recebido. Seu exame foi encaminhado para AUDITORIA.";
-      setMsgs((p) => [{ id: `a${idRef.current++}`, from: "ai", text: reply }, ...p]);
-    } catch {
-      setMsgs((p) => [{ id: `e${idRef.current++}`, from: "ai", text: "Falha no envio. Tente novamente." }, ...p]);
-    } finally {
-      setLoading(false);
-      setFile(null);
-    }
+  const userMsg: Msg = { id: `u${idRef.current++}`, from: "user", text: `📎 ${file.name || "arquivo"}` };
+  setMsgs((p) => [userMsg, ...p]);
+
+  try {
+    setLoading(true);
+    const data = await verifyExam(file); 
+    // data esperado: { message: string, status: string }
+
+    const reply = data?.message || "Recebi seu exame, em breve informo o status.";
+    setMsgs((p) => [{ id: `a${idRef.current++}`, from: "ai", text: reply }, ...p]);
+
+  } catch (e) {
+    setMsgs((p) => [{ id: `e${idRef.current++}`, from: "ai", text: "Falha no envio. Tente novamente." }, ...p]);
+  } finally {
+    setLoading(false);
+    setFile(null);
   }
+}
+
 
   return (
     <View style={{ flex: 1 }}>
