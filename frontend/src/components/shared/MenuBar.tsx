@@ -16,6 +16,13 @@ const MenuBar = () => {
     const path = useCurrentPage();
     console.log(path);
 
+    const menuItems = [
+        { name: "Dashboard", path: "/" },
+        { name: "Exames", path: "/exames" },
+        { name: "Consultas", path: "/consultas" },
+        { name: "Fale Conosco", path: "/talk" },
+    ];
+
     if(path != "/auth")
     return (
         <div className={"hidden lg:flex items-center h-screen"}>
@@ -44,10 +51,14 @@ const MenuBar = () => {
                     </div>
 
                     <nav className={`flex flex-col ${minimized ? "items-center" : ""} mx-4 gap-4`}>
-                        <MenuItem name={"Dashboard"} activated={true} minimized={minimized} />
-                        <MenuItem name={"Exames"} activated={false} minimized={minimized} />
-                        <MenuItem name={"Consultas"} activated={false} minimized={minimized} />
-                        <MenuItem name={"Fale Conosco"} activated={false} minimized={minimized} />
+                        {menuItems.map(item => (
+                            <MenuItem
+                                key={item.name}
+                                name={item.name as any}
+                                activated={path === item.path}
+                                minimized={minimized}
+                            />
+                        ))}
                     </nav>
                 </div>
 
