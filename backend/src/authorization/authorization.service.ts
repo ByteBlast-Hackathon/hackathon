@@ -50,10 +50,25 @@ export class AuthorizationService {
         console.log('Códigos encontrados:', procedureCodes);
       } else {
         console.log('Nenhum código encontrado. A procurar por nomes de exames...');
-        const lines = ocrText.split('\n');
-        searchTerms = lines
-          .map(line => line.trim())
-          .filter(line => line.length > 5 && line.length < 100 && /^[A-Z]/.test(line));
+
+        const ignorePatterns = [
+          /^nome[:\s]/i,
+          /^data[:\s]/i,
+          /hospital/i,
+          /sociedade/i,
+        ];
+
+        const possibleTerms = ocrText
+          .split(/[\n,;.]/)
+          .map(t => t.trim())
+          .filter(t =>
+            t.length > 5 &&
+            t.length < 120 &&
+            !ignorePatterns.some(rx => rx.test(t))
+          );
+
+        searchTerms = possibleTerms;
+        console.log('Termos de pesquisa filtrados:', searchTerms);
 
         if (searchTerms.length === 0) {
           return {
@@ -61,7 +76,6 @@ export class AuthorizationService {
             message: 'Nenhum código ou nome de procedimento reconhecível foi encontrado no documento.',
           };
         }
-        console.log('Termos de pesquisa encontrados:', searchTerms);
       }
 
       let procedimentos: Procedure[] = [];
@@ -73,14 +87,20 @@ export class AuthorizationService {
 
         queryBuilder.where(new Brackets(qb => {
           searchTerms.forEach((term, index) => {
-            const cleanTerm = term.split(' ').slice(0, 2).join(' ').replace(/[^a-zA-ZÀ-ú\s]/g, '');
+            const cleanTerm = term
+              .replace(/[^\wÀ-ú\s-]/g, '')
+              .split(/\s+/)
+              .slice(0, 3)
+              .join(' ');
+
             if (cleanTerm.length > 3) {
-              qb.orWhere(`procedure.terminologia ILIKE :term${index}`, {
+              qb.orWhere(`LOWER(procedure.terminologia) LIKE LOWER(:term${index})`, {
                 [`term${index}`]: `%${cleanTerm}%`,
               });
             }
           });
         }));
+
         procedimentos = await queryBuilder.getMany();
       }
 
