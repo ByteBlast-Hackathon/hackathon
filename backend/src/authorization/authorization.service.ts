@@ -107,7 +107,7 @@ export class AuthorizationService {
       if (procedimentos.length === 0) {
         return {
           status: 'Não Autorizado',
-          message: `Nenhum procedimento correspondente aos termos [${procedureCodes.join(', ') || searchTerms.join(', ')}] foi encontrado na nossa lista de cobertura.`,
+          message: 'Nenhum dos procedimentos solicitados foi encontrado na nossa lista de cobertura.',
         };
       }
 
