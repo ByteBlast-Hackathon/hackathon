@@ -1,130 +1,184 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-interface registerProps {
+
+// --- INTERFACES (DEFINIÇÕES DE TIPO) ---
+
+interface RegisterProps {
     name: string;
     email: string;
     password: string;
-    cpf: string;
-    phone: string;
-    birthDate: string;
+    // Removidos os campos extra que não existem na API
 }
 
-interface loginProps {
+interface LoginProps {
     email: string;
     pass: string;
 }
 
-export const registerRequest = ({ name, email, password, cpf, birthDate, phone }: registerProps) => {
+// --- FUNÇÕES DE API ---
+
+/**
+ * Envia um pedido para registar um novo utilizador.
+ * Envia apenas os campos que a API espera.
+ */
+export const registerRequest = async ({ name, email, password }: RegisterProps) => {
     try {
-        axios.post("http://localhost:3000/user", {
+        const response = await axios.post(`http://localhost:3000/user`, {
             name,
             email,
             password,
-            cpf,
-            phone,
-            birthDate,
-        }).then(({ data }) => {
-            console.log("Usuário registrado:", data);
         });
+        console.log("Utilizador registado com sucesso:", response.data);
+        return response.data;
     } catch (error) {
-        console.error("Erro no registro:", error);
+        if (axios.isAxiosError(error)) {
+            console.error("Erro no registo:", error.response?.data || error.message);
+        } else {
+            console.error("Erro inesperado no registo:", error);
+        }
+        // Retorna o erro para que o frontend possa exibir uma mensagem
+        throw error;
     }
 };
 
-export const loginRequest = ({ email, pass }: loginProps) => {
+/**
+ * Envia um pedido de login e, se for bem-sucedido, guarda o token.
+ * Retorna os dados do utilizador logado.
+ */
+export const loginRequest = async ({ email, pass }: LoginProps) => {
     try {
-        axios.post("http://localhost:3000/auth/login", {
+        const response = await axios.post(`http://localhost:3000/auth/login`, {
             email,
             password: pass,
-        }).then(async (res) => {
-            const token: string = res.data?.access_token;
-            console.log("Token recebido:", token);
-
-            if (token) {
-                // Persist token in a cookie so other functions can read it (getUserData, validateToken, etc.)
-                // Use a reasonably conservative expiry (1 hour to match backend signOptions). In prod, set secure and sameSite flags.
-                try {
-                    Cookies.set('auth_token', token, {
-                        expires: 1/24, // 1 hour = 1/24 day
-                        secure: window.location.protocol === 'https:',
-                        sameSite: 'lax',
-                    });
-                } catch (cookieErr) {
-                    console.warn('Não foi possível salvar o cookie de auth (ambiente restrito?):', cookieErr);
-                }
-
-                // Also set axios default Authorization header for the current session
-                try {
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                } catch (e) {
-                    // ignore in non-browser or restricted envs
-                }
-
-                await getUserData(token);
-            }
-        }).catch((err) => {
-            console.error("Erro no login:", err);
-            return false
         });
+
+        const token = response.data?.access_token;
+        if (!token) {
+            throw new Error("Token não recebido do servidor.");
+        }
+
+        console.log("Login bem-sucedido. Token:", token);
+
+        // Guarda o token num cookie seguro para uso futuro
+        Cookies.set('auth_token', token, {
+            expires: 1 / 24, // Expira em 1 hora
+            secure: window.location.protocol === 'https:',
+            sameSite: 'lax',
+        });
+
+        // Define o cabeçalho de autorização padrão para todas as futuras requisições do axios
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        // Após o login, busca e retorna os dados do utilizador
+        return await getUserData();
+
     } catch (error) {
-        console.error("Erro durante login:", error);
+        if (axios.isAxiosError(error)) {
+            console.error("Erro no login:", error.response?.data || error.message);
+        } else {
+            console.error("Erro inesperado no login:", error);
+        }
+        throw error;
     }
 };
 
-export async function validateToken(token?: string) {
+/**
+ * Valida o token JWT atual. Retorna true se válido, false se inválido.
+ * Esta função é extremamente leve e ideal para ser chamada frequentemente.
+ */
+export const validateToken = async () => {
     try {
-        let authToken = token;
-
-        // If no token provided, try reading from cookie
-        if (!authToken) {
-            authToken = Cookies.get('auth_token');
-        }
-
-        console.log("Validando token:", authToken);
-
-        if (!authToken) {
-            console.warn("Nenhum token encontrado");
-            return;
-        }
-
-        const { data } = await axios.get("http://localhost:3000/auth/validate", {
-            headers: {
-                Authorization: `Bearer ${authToken}`,
-            },
-        });
-
-        console.log("Token válido:", data);
-        return data;
-    } catch (error) {
-        console.error("Erro na validação do token:", error);
-    }
-}
-
-
-export const getUserData = async (token: string) => {
-    console.log("Token recebido:", token);
-    try {
-        console.log(token)
+        const token = Cookies.get('auth_token');
         if (!token) {
-            console.warn("Nenhum token encontrado");
-            return;
+            console.log("Nenhum token encontrado para validação.");
+            return false;
         }
 
-        if (!axios.defaults.headers.common['Authorization']) {
-            try {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            } catch (e) {
-            }
+        // Define o cabeçalho apenas para esta requisição, caso ainda não esteja definido globalmente
+        const headers = { Authorization: `Bearer ${token}` };
+        const response = await axios.get(`http://localhost:3000/auth/validate`, { headers });
+
+        // A rota de validação retorna 204 (No Content) em caso de sucesso
+        if (response.status === 204) {
+            console.log("Token é válido.");
+            return true;
+        }
+        return false;
+
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Token inválido ou expirado:", error.response?.data || error.message);
+        } else {
+            console.error("Erro inesperado na validação do token:", error);
+        }
+        // Se a validação falhar, remove o cookie inválido
+        Cookies.remove('auth_token');
+        delete axios.defaults.headers.common['Authorization'];
+        return false;
+    }
+};
+
+/**
+ * Busca os dados do perfil do utilizador autenticado.
+ */
+export const getUserData = async () => {
+    try {
+        const token = Cookies.get('auth_token');
+        if (!token) {
+            throw new Error("Não autenticado. Nenhum token encontrado.");
         }
 
-        const { data } = await axios.get("http://localhost:3000/user/profile", {
+        // Garante que o cabeçalho de autorização está definido
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        // Chama o endpoint correto para o perfil do utilizador
+        const response = await axios.get(`http://localhost:3000/auth/profile`);
+        console.log("Dados do utilizador recebidos:", response.data);
+        return response.data;
+
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Erro ao buscar dados do utilizador:", error.response?.data || error.message);
+        } else {
+            console.error("Erro inesperado ao buscar dados do utilizador:", error);
+        }
+        throw error;
+    }
+};
+
+/**
+ * Envia um ficheiro PDF para o endpoint de autorização.
+ * @param file O ficheiro PDF a ser enviado.
+ */
+export const authorizeRequest = async (file: File) => {
+    try {
+        const token = Cookies.get('auth_token');
+        if (!token) {
+            throw new Error("Não autenticado. Nenhum token encontrado.");
+        }
+
+        // Cria um objeto FormData para enviar o ficheiro
+        const formData = new FormData();
+        formData.append('examFile', file); // 'examFile' deve corresponder ao nome no controller
+
+        const response = await axios.post(`http://localhost:3000/authorization/verify`, formData, {
             headers: {
-                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`,
             },
         });
-        return data;
+
+        console.log("Resposta da autorização:", response.data);
+        return response.data;
+
     } catch (error) {
-        console.error("Erro ao buscar dados do usuário:", error);
+        if (axios.isAxiosError(error)) {
+            console.error("Erro ao enviar pedido de autorização:", error.response?.data || error.message);
+        } else {
+            console.error("Erro inesperado ao enviar pedido de autorização:", error);
+        }
+        throw error;
     }
-}
+};
+
