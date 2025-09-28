@@ -9,6 +9,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {EyeClosedIcon, EyeIcon} from "lucide-react";
 import {registerRequest} from "@/api/requests/auth";
+import { toast } from "sonner";
 
 const formSchema = z.object({
     name: z.string().min(10, {
@@ -41,22 +42,21 @@ const formSchema = z.object({
     phone: z.string().refine((val) => /^\d{10,11}$/.test(val), {
         message: "Número de celular inválido (incluir DDD, 10 ou 11 dígitos)",
     }),
-    // regras de complexidade para password
     password: z.string().min(8, {
         message: "Senha deve ter no minimo 8 caracteres",
     })
-    .refine((val) => /[A-Z]/.test(val), {
-        message: "Deve conter ao menos uma letra maiúscula",
-    })
-    .refine((val) => /[a-z]/.test(val), {
-        message: "Deve conter ao menos uma letra minúscula",
-    })
-    .refine((val) => /\d/.test(val), {
-        message: "Deve conter ao menos um número",
-    })
-    .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
-        message: "Deve conter ao menos um caractere especial",
-    }),
+        .refine((val) => /[A-Z]/.test(val), {
+            message: "Deve conter ao menos uma letra maiúscula",
+        })
+        .refine((val) => /[a-z]/.test(val), {
+            message: "Deve conter ao menos uma letra minúscula",
+        })
+        .refine((val) => /\d/.test(val), {
+            message: "Deve conter ao menos um número",
+        })
+        .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
+            message: "Deve conter ao menos um caractere especial",
+        }),
     // campo para confirmar a senha (não exposto em backend)
     confirmPassword: z.string().min(1, {
         message: "Confirme sua senha",
@@ -75,9 +75,12 @@ const formSchema = z.object({
 export type FormRegisterValues = z.infer<typeof formSchema>
 
 // Accept a toggle callback so parent can switch between login/register
-const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
+const FormRegister = ({ onToggle }: { onToggle: () => void }) => {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
+    const [success, setSuccess] = useState(false)
     const form = useForm<FormRegisterValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -90,20 +93,6 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
             confirmPassword: "",
         },
     })
-
-    function onSubmit(values: FormRegisterValues) {
-        // normalmente você não enviaria confirmPassword ao backend
-        const { confirmPassword, ...payload } = values
-        if (confirmPassword == payload.password) {
-            const finalPayload = {
-                ...payload,
-                cpf: formatCPF(payload.cpf ?? ""),
-                phone: formatPhone(payload.phone ?? ""),
-            }
-
-            registerRequest({...finalPayload})
-        }
-    }
 
     // helpers para formatar CPF e Phone no input visual, enquanto mantemos apenas dígitos no form state
     const formatCPF = (digits: string) => {
@@ -124,9 +113,29 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
         return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
     }
 
+    async function onSubmit(values: FormRegisterValues) {
+        setLoading(true)
+        setError("")
+        setSuccess(false)
+        const { confirmPassword, ...payload } = values
+        if (confirmPassword === payload.password) {
+            try {
+                await registerRequest(payload)
+                setSuccess(true)
+                toast.success("Cadastro realizado! Redirecionando para o login.")
+                onToggle()
+            } catch (e: any) {
+                setError(e?.message || "Erro ao registrar. Tente novamente.")
+                toast.error(e?.message || "Erro ao registrar. Tente novamente.")
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 lg:space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 lg:space-y-8 animate-fade-in">
                 <FormField
                     control={form.control}
                     name="name"
@@ -141,7 +150,6 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                     )}
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                     <FormField
                         control={form.control}
                         name="email"
@@ -149,13 +157,12 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                             <FormItem>
                                 <FormLabel>Gmail</FormLabel>
                                 <FormControl>
-                                    <Input type={"email"} placeholder={"Insira seu Melhor email"} {...field}/>
+                                    <Input type={"email"} placeholder={"usuario@gmail.com"} {...field}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-
                     {/* CPF */}
                     <FormField
                         control={form.control}
@@ -179,8 +186,6 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                             </FormItem>
                         )}
                     />
-
-                    {/* Birth date */}
                     <FormField
                         control={form.control}
                         name="birthDate"
@@ -188,18 +193,13 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                             <FormItem>
                                 <FormLabel>Data de Nascimento</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type={"date"}
-                                        max={new Date().toISOString().slice(0,10)}
-                                        {...field}
-                                    />
+                                    <Input type={"date"} {...field}/>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
 
-                    {/* Phone */}
                     <FormField
                         control={form.control}
                         name="phone"
@@ -222,9 +222,7 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                             </FormItem>
                         )}
                     />
-
                 </div>
-
                 <FormField
                     control={form.control}
                     name="password"
@@ -233,8 +231,8 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                             <FormLabel>Senha</FormLabel>
                             <FormControl>
                                 <div className="flex relative items-center w-full">
-                                    <Input type={!showPassword ?"password" : "text"} placeholder={"Insira uma senha"} {...field}/>
-                                    <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowPassword(v => !v)} className="absolute right-3 text-sm text-[var(--primary-light-green)] underline font-semibold">
+                                    <Input type={!showPassword ? "password" : "text"} placeholder={"Crie uma senha forte"} {...field}/>
+                                    <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowPassword(v => !v)} className="absolute right-3 text-sm text-green-600 underline font-semibold">
                                         {showPassword ? <EyeIcon /> : <EyeClosedIcon />}
                                     </button>
                                 </div>
@@ -248,11 +246,11 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                     name="confirmPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Confirme a Senha</FormLabel>
+                            <FormLabel>Confirmar Senha</FormLabel>
                             <FormControl>
                                 <div className="flex relative items-center w-full">
-                                    <Input type={!showConfirm ?"password" : "text"} placeholder={"Insira uma senha"} {...field}/>
-                                    <button type="button" aria-label={showConfirm ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowConfirm(v => !v)} className="absolute right-3 text-sm text-[var(--primary-light-green)] underline font-semibold">
+                                    <Input type={!showConfirm ? "password" : "text"} placeholder={"Repita a senha"} {...field}/>
+                                    <button type="button" aria-label={showConfirm ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShowConfirm(v => !v)} className="absolute right-3 text-sm text-green-600 underline font-semibold">
                                         {showConfirm ? <EyeIcon /> : <EyeClosedIcon />}
                                     </button>
                                 </div>
@@ -261,17 +259,14 @@ const FormRegister = ({ onToggle }: { onToggle?: () => void }) => {
                         </FormItem>
                     )}
                 />
-
-                <div className="flex justify-center items-center text-lg">
-                    <p>Já possui conta?</p>
-                    <Button type={"button"} className={"text-[var(--primary-light-green)] underline font-bold"} onClick={() => {
-                        console.log('FormRegister: toggle button clicked, onToggle:', onToggle)
-                        try { onToggle?.() } catch (e) { console.error('FormRegister: onToggle error', e) }
-                    }}> Login </Button>
-                </div>
-
                 <div className={"flex w-full justify-center mb-6"}>
-                    <Button type="submit" variant={"auth"} size={"auth"}>Cadastrar</Button>
+                    <Button type="submit" variant={"auth"} size={"auth"} disabled={loading}>
+                        {loading ? <span className="loader mr-2"></span> : null}
+                        REGISTRAR
+                    </Button>
+                </div>
+                <div className="flex justify-center items-center text-lg">
+                    <p>Já possui conta?</p> <Button type={"button"} onClick={() => onToggle && onToggle()} className={"text-green-600 underline font-bold"}> Login </Button>
                 </div>
             </form>
         </Form>

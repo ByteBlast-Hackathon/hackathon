@@ -4,12 +4,12 @@ import "./globals.css";
 import React from "react";
 import MenuBar from "@/components/shared/MenuBar";
 import HelpButton from "@/components/shared/HelpButton";
+import {Toaster} from "@/components/ui/sonner";
 
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
 });
-
 
 export const metadata: Metadata = {
   title: "Unimed - Saude Suplementar",
@@ -27,6 +27,7 @@ export default function RootLayout({
         className={`${roboto.variable}  antialiased flex gap-6`}
       >
       <MenuBar />
+      <Toaster />
         {children}
 
       <div className={"absolute bottom-5 right-5"}>

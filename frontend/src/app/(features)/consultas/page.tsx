@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";
-import { SendHorizontal, Bot, Calendar, Stethoscope, MessageSquareQuote } from "lucide-react";
+import { SendHorizontal, Bot } from "lucide-react";
 import { bookAppointmentRequest, BookingRequestProps } from "@/api/requests/chat-bot";
 import axios from "axios";
+import useAuthGuard from "@/lib/useAuthGuard";
 
 // --- Definições de Tipo ---
 type ConversationStep = 'start' | 'name' | 'birthDate' | 'specialty' | 'reason' | 'confirm' | 'done';
@@ -14,6 +15,8 @@ interface Message {
 }
 
 const ConsultasPage = () => {
+    useAuthGuard();
+
     // --- ESTADO DO COMPONENTE ---
     const [messages, setMessages] = useState<Message[]>([
         { from: 'bot', text: 'Olá! Vamos iniciar o seu agendamento. Por favor, qual é o nome completo do paciente?' }

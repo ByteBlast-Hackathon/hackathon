@@ -8,7 +8,6 @@ interface RegisterProps {
     name: string;
     email: string;
     password: string;
-    // Removidos os campos extra que não existem na API
 }
 
 interface LoginProps {
@@ -18,10 +17,6 @@ interface LoginProps {
 
 // --- FUNÇÕES DE API ---
 
-/**
- * Envia um pedido para registar um novo utilizador.
- * Envia apenas os campos que a API espera.
- */
 export const registerRequest = async ({ name, email, password }: RegisterProps) => {
     try {
         const response = await axios.post(`http://localhost:3000/user`, {
@@ -42,10 +37,7 @@ export const registerRequest = async ({ name, email, password }: RegisterProps) 
     }
 };
 
-/**
- * Envia um pedido de login e, se for bem-sucedido, guarda o token.
- * Retorna os dados do utilizador logado.
- */
+
 export const loginRequest = async ({ email, pass }: LoginProps) => {
     try {
         const response = await axios.post(`http://localhost:3000/auth/login`, {
@@ -83,10 +75,7 @@ export const loginRequest = async ({ email, pass }: LoginProps) => {
     }
 };
 
-/**
- * Valida o token JWT atual. Retorna true se válido, false se inválido.
- * Esta função é extremamente leve e ideal para ser chamada frequentemente.
- */
+
 export const validateToken = async () => {
     try {
         const token = Cookies.get('auth_token');
@@ -135,6 +124,8 @@ export const getUserData = async () => {
         // Chama o endpoint correto para o perfil do utilizador
         const response = await axios.get(`http://localhost:3000/auth/profile`);
         console.log("Dados do utilizador recebidos:", response.data);
+        localStorage.setItem("name", response.data.name);
+        localStorage.setItem("id", response.data.id);
         return response.data;
 
     } catch (error) {
@@ -147,10 +138,7 @@ export const getUserData = async () => {
     }
 };
 
-/**
- * Envia um ficheiro PDF para o endpoint de autorização.
- * @param file O ficheiro PDF a ser enviado.
- */
+
 export const authorizeRequest = async (file: File) => {
     try {
         const token = Cookies.get('auth_token');

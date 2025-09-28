@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { SendHorizontal, Bot } from "lucide-react";
 // Importa a função de API necessária
 import { askGenerativeAI } from "@/api/requests/chat-bot";
+import useAuthGuard from "@/lib/useAuthGuard";
 
 // --- Definições de Tipo ---
 interface Message {
@@ -12,7 +13,13 @@ interface Message {
     suggestedQuestions?: string[];
 }
 
+function isApiError(error: unknown): error is { response?: { data?: { message?: string } } } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
 const TalkPage = () => {
+    useAuthGuard();
+
     // --- ESTADO DO COMPONENTE ---
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -36,7 +43,9 @@ const TalkPage = () => {
     };
 
     const handleApiError = (error: unknown) => {
-        const errorMessage = (error as any)?.response?.data?.message || 'Desculpe, ocorreu um erro inesperado. Tente novamente mais tarde.';
+        const errorMessage = isApiError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : 'Desculpe, ocorreu um erro inesperado. Tente novamente mais tarde.';
         addMessage({ from: 'bot', text: errorMessage });
     };
 
