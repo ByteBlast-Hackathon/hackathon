@@ -36,7 +36,7 @@ interface RelevantSection {
     id: number;
     title: string;
     timeEstimate: number;
-    documents: unknown[]; // 'unknown' é uma alternativa mais segura para 'any'
+    documents: unknown[];
 }
 
 interface ChatResponse {
@@ -56,13 +56,14 @@ interface AuthorizationRequestProps {
 }
 
 interface AuthorizationResponse {
-    status: string;
+    status: 'Autorizado' | 'Em Análise' | 'Em Análise (OPME)' | 'Falha' | 'Não Autorizado';
     message: string;
-    procedimentos?: Procedure[]; // Usando o tipo Procedure definido
+    procedimentos?: Procedure[];
 }
 
 // Tarefa 3: Agendamento de Consulta
-interface BookingRequestProps {
+// --- ALTERAÇÃO AQUI: Adicionado 'export' para que a interface possa ser importada ---
+export interface BookingRequestProps {
     name: string;
     birthDate: string;
     specialty: string;
@@ -76,36 +77,26 @@ interface BookingResponse {
     success: boolean;
     message: string;
     protocol?: string;
-    data?: Record<string, unknown>; // 'Record<string, unknown>' é ideal para um objeto com estrutura desconhecida
+    data?: Record<string, unknown>;
 }
 
 
 // --- FUNÇÕES DE API ---
 
-/**
- * Função auxiliar para obter o token de autenticação e os cabeçalhos.
- * Lança um erro se o token não for encontrado.
- */
-const getAuthHeaders = () => {
+const getAuthToken = () => {
     const token = Cookies.get('auth_token');
     if (!token) {
         throw new Error("Não autenticado. Por favor, faça login novamente.");
     }
-    return {
-        Authorization: `Bearer ${token}`,
-    };
+    return token;
 };
 
-/**
- * TAREFA 1: Envia uma pergunta para o chatbot de IA generativa.
- * @param props - O objeto contendo a pergunta do utilizador.
- * @returns A resposta detalhada da IA.
- */
 export const askGenerativeAI = async ({ question }: ChatRequestProps): Promise<ChatResponse> => {
     try {
-        const headers = getAuthHeaders();
-        // NOTA: O seu endpoint era /chat. Assumindo que ele está num controller /ai. Ajuste se necessário.
-        const response = await axios.post(`${API_BASE_URL}/ai/chat`, { question }, { headers });
+        const token = getAuthToken();
+        const response = await axios.post(`${API_BASE_URL}/ai/chat`, { question }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -117,22 +108,18 @@ export const askGenerativeAI = async ({ question }: ChatRequestProps): Promise<C
     }
 };
 
-/**
- * TAREFA 2: Envia um ficheiro PDF para o sistema de autorização de exames.
- * @param props - O objeto contendo o ficheiro a ser enviado.
- * @returns O status da autorização (Autorizado, Em Análise, etc.).
- */
 export const authorizeExamRequest = async ({ file }: AuthorizationRequestProps): Promise<AuthorizationResponse> => {
     try {
-        const headers = {
-            ...getAuthHeaders(),
-            'Content-Type': 'multipart/form-data',
-        };
-
+        const token = getAuthToken();
         const formData = new FormData();
         formData.append('examFile', file);
 
-        const response = await axios.post(`${API_BASE_URL}/authorization/verify`, formData, { headers });
+        const response = await axios.post(`${API_BASE_URL}/authorization/verify`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -144,16 +131,12 @@ export const authorizeExamRequest = async ({ file }: AuthorizationRequestProps):
     }
 };
 
-/**
- * TAREFA 3: Envia os dados para um agendamento completo de consulta.
- * @param bookingData - Os detalhes do agendamento fornecidos pelo utilizador.
- * @returns A confirmação do agendamento com um número de protocolo.
- */
 export const bookAppointmentRequest = async (bookingData: BookingRequestProps): Promise<BookingResponse> => {
     try {
-        const headers = getAuthHeaders();
-        // NOTA: O endpoint era /complete-booking. Assumindo que está num controller /appointment. Ajuste se necessário.
-        const response = await axios.post(`${API_BASE_URL}/appointment/complete-booking`, bookingData, { headers });
+        const token = getAuthToken();
+        const response = await axios.post(`${API_BASE_URL}/appointments/complete-booking`, bookingData, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
