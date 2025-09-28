@@ -305,7 +305,7 @@ const ConsultasPage = () => {
                                 </div>
 
                                 {/* INPUT E BOTÃO DE CONFIRMAÇÃO */}
-                                <div className="p-4 border-t bg-white border-gray-200 flex-shrink-0">
+                                <div className="p-4 border-t bg-white text-black border-gray-200 flex-shrink-0">
                                     {conversationStep === 'confirm' ? (
                                         <div className="flex gap-3">
                                             <motion.button
