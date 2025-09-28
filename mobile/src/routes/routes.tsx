@@ -3,8 +3,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import LoginScreen from "../app/login/index";
 import RegisterScreen from "../app/register/index";
-import ChatScreen from "../app/chat";
 import UserScreen from "../app/user";
+import AskAI from "../app/chat/AskAI";
+import VerifyExam from "../app/chat/VerifyExam";
+import BookAppointment from "../app/chat/BookAppointment";
+import AmbulanceDemo from "../app/ambulance";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,13 +26,28 @@ export default function Routes() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Chat"
-          component={ChatScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="User"
           component={UserScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="AskAI"
+          component={AskAI}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="VerifyExam"
+          component={VerifyExam}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="BookAppointment"
+          component={BookAppointment}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="SOS"
+          component={AmbulanceDemo}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

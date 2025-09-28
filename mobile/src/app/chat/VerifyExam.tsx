@@ -4,8 +4,8 @@ import * as DocumentPicker from "expo-document-picker";
 import { s } from "./styles";
 import type { Msg } from "./types";
 import { verifyExam } from "@/src/api/api";
-import Menu from "@/src/components/menu";
-import ChatModeBar from "../../components/chatModeBar";
+import ScreenScaffold from "@/src/components/screenScaffold";
+import UnimedLogo from "@/src/assets/unimedIcon.svg";
 
 export default function VerifyExam({ navigation }: any) {
   const [msgs, setMsgs] = useState<Msg[]>([
@@ -51,15 +51,19 @@ async function send() {
 
 
   return (
+      <ScreenScaffold
+      logo={UnimedLogo}
+      onPressLogo={() => navigation.navigate("User" as never)}
+      onPressSOS={() => navigation.navigate("SOS" as never)}
+      tab="exam"
+      onChangeTab={(k) => {
+        if (k === "ai") navigation.navigate("AskAI" as never);
+        if (k === "exam") navigation.navigate("VerifyExam" as never);
+        if (k === "booking") navigation.navigate("BookAppointment" as never);
+        if (k === "user") navigation.navigate("User" as never);
+      }}
+    >
     <View style={{ flex: 1 }}>
-        <ChatModeBar
-            value="exam"
-            onChange={(mode) => {
-                if (mode === "ai") navigation.navigate("AskAI");
-                if (mode === "exam") return;
-                if (mode === "booking") navigation.navigate("BookAppointment");
-            }}
-        />
       <FlatList
         inverted
         data={msgs}
@@ -86,8 +90,7 @@ async function send() {
         </View>
         {file && <Text style={{ marginTop: 6 }} numberOfLines={1}>📎 {file.name}</Text>}
       </View>
-
-      <Menu page="chat" isSelected icon="bot" onPress={(t) => navigation.navigate(t === "chat" ? "Chat" : "User")} />
     </View>
+    </ScreenScaffold>
   );
 }

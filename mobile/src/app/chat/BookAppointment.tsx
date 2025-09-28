@@ -4,8 +4,35 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, A
 import { s } from "./styles";
 import type { Msg } from "./types";
 import { completeBooking, BookingPayload } from "@/src/api/api";
-import Menu from "@/src/components/menu";
-import ChatModeBar from "../../components/chatModeBar";
+import ScreenScaffold from "@/src/components/screenScaffold";
+import UnimedLogo from "@/src/assets/unimedIcon.svg";
+
+function formatBookingReply(data: any): string {
+  if (!data) return "Não recebi dados do agendamento.";
+
+  // Mensagem base
+  const lines: string[] = [];
+  if (data.message) lines.push(`✅ ${data.message}`);
+  if (data.protocol) lines.push(`Protocolo: ${data.protocol}`);
+
+  const d = data.appointmentDetails || {};
+  if (d.patientName)        lines.push(`Paciente: ${d.patientName}`);
+  if (d.patientBirthDate)   lines.push(`Nascimento: ${d.patientBirthDate}`);
+  if (d.appointmentDate || d.appointmentTime) {
+    lines.push(`Consulta: ${[d.appointmentDate, d.appointmentTime].filter(Boolean).join(" às ")}`);
+  }
+  if (d.doctorName)         lines.push(`Médico(a): ${d.doctorName}`);
+  if (d.doctorSpecialty)    lines.push(`Especialidade: ${d.doctorSpecialty}`);
+  if (d.doctorCity)         lines.push(`Cidade: ${d.doctorCity}`);
+  if (d.reason)             lines.push(`Motivo: ${d.reason}`);
+  if (d.status)             lines.push(`Status: ${d.status}`);
+
+  // fallback se vier algo diferente
+  if (!lines.length) {
+    try { return JSON.stringify(data, null, 2); } catch { return String(data); }
+  }
+  return lines.join("\n");
+}
 
 const steps = [
   { key: "name", prompt: "Informe seu nome completo:" },
@@ -44,6 +71,7 @@ export default function BookAppointment({ navigation }: any) {
     setField(key, val);
     setAnswer("");
 
+    // ainda há perguntas → avança
     if (idx < steps.length - 1) {
       const nxt = idx + 1;
       setIdx(nxt);
@@ -51,32 +79,41 @@ export default function BookAppointment({ navigation }: any) {
       return;
     }
 
-    // fim: enviar
+    // fim: enviar para API e exibir exatamente o que ela retornar
     try {
       setLoading(true);
-      await completeBooking(form);
+      const data = await completeBooking(form); // retorna { success, protocol, message, appointmentDetails: {...} }
+
+      const replyText = formatBookingReply(data);
       setMsgs((p) => [
-        { id: `a${idRef.current++}`, from: "ai", text: "✅ Agendamento completo executado com sucesso." },
+        { id: `a${idRef.current++}`, from: "ai", text: replyText },
         ...p,
       ]);
-      Alert.alert("Tudo certo!", "Seu pedido de agendamento foi enviado.");
-    } catch {
-      setMsgs((p) => [{ id: `e${idRef.current++}`, from: "ai", text: "Falha ao agendar. Tente novamente." }, ...p]);
+    } catch (e: any) {
+      const apiMsg =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        "Falha ao agendar. Tente novamente.";
+      setMsgs((p) => [{ id: `e${idRef.current++}`, from: "ai", text: apiMsg }, ...p]);
     } finally {
       setLoading(false);
     }
   }
 
   return (
+      <ScreenScaffold
+      logo={UnimedLogo}
+      onPressLogo={() => navigation.navigate("User" as never)}
+      onPressSOS={() => navigation.navigate("SOS" as never)}
+      tab="booking"
+      onChangeTab={(k) => {
+        if (k === "ai") navigation.navigate("AskAI" as never);
+        if (k === "exam") navigation.navigate("VerifyExam" as never);
+        if (k === "booking") navigation.navigate("BookAppointment" as never);
+        if (k === "user") navigation.navigate("User" as never);
+      }}
+    >
     <View style={{ flex: 1 }}>
-        <ChatModeBar
-            value="booking"
-            onChange={(mode) => {
-                if (mode === "ai") navigation.navigate("AskAI");
-                if (mode === "exam") navigation.navigate("VerifyExam");
-                if (mode === "booking") return;
-            }}
-        />
       <FlatList
         inverted
         data={msgs}
@@ -106,8 +143,7 @@ export default function BookAppointment({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-
-      <Menu page="chat" isSelected icon="bot" onPress={(t) => navigation.navigate(t === "chat" ? "Chat" : "User")} />
     </View>
+    </ScreenScaffold>
   );
 }

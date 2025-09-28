@@ -15,6 +15,19 @@ type loginProps = {
     password: string;
 }
 
+export type UserProfile = {
+  id: number;
+  name: string;
+  email: string;
+  cpf: string;
+  phone: string;
+  birthDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  password?: string;
+};
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.115:3000";
 export const api = axios.create({ baseURL: BASE_URL, timeout: 20000 });
 
@@ -91,6 +104,17 @@ export async function completeBooking(payload: BookingPayload) {
     }
   });
   return data; // backend responde 201; retorne o que ele mandar
+}
+
+export async function getProfile(): Promise<UserProfile> {
+  const token = await getToken();
+  if (!token) throw new Error("Token ausente. Faça login novamente.");
+
+  const { data } = await api.get<UserProfile>("/auth/profile", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  return data;
 }
 
 export const registerRequest = async ({name, email, password, cpf, birthDate, phone}: registerProps) => {
